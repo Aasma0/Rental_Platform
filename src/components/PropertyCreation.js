@@ -10,7 +10,7 @@ const PropertyCreation = () => {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState([]); // Store selected images
   const [category, setCategory] = useState("");
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState("");
@@ -28,6 +28,16 @@ const PropertyCreation = () => {
     fetchCategories();
   }, []);
 
+  // Handle image selection
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 10) {
+      setError("You can only upload up to 10 images.");
+      return;
+    }
+    setImages(files); // Store selected images
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,23 +48,25 @@ const PropertyCreation = () => {
       return;
     }
 
-    const propertyData = {
-      title,
-      description,
-      location,
-      price,
-      images,
-      category,
-    };
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("location", location);
+    formData.append("price", price);
+    formData.append("category", category);
+
+    images.forEach((image) => {
+      formData.append("images", image);
+    });
 
     try {
       const response = await axios.post(
         "http://localhost:8000/api/property/create",
-        propertyData,
+        formData,
         {
           headers: {
             Authorization: token,
-            "Content-Type": "application/json",
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -71,7 +83,7 @@ const PropertyCreation = () => {
     <div className="max-w-4xl mx-auto p-8">
       <h1 className="text-2xl font-semibold mb-6">Create a New Property</h1>
       {error && <p className="text-red-500">{error}</p>}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} encType="multipart/form-data">
         <div className="mb-4">
           <label className="block font-medium">Title</label>
           <input type="text" className="w-full p-2 border rounded" value={title} onChange={(e) => setTitle(e.target.value)} required />
@@ -93,8 +105,8 @@ const PropertyCreation = () => {
         </div>
 
         <div className="mb-4">
-          <label className="block font-medium">Images (comma-separated URLs)</label>
-          <input type="text" className="w-full p-2 border rounded" value={images} onChange={(e) => setImages(e.target.value.split(","))} required />
+          <label className="block font-medium">Upload Images (Max 10)</label>
+          <input type="file" className="w-full p-2 border rounded" accept="image/*" multiple onChange={handleImageChange} required />
         </div>
 
         <div className="mb-4">

@@ -8,6 +8,7 @@ import RegistrationComponent from "./components/registration";
 import CategoryComponent from "./components/category/CategoryComponent";
 import ProtectedRoutes from "./protectedRoutes/protectedRoutes"; // Import ProtectedRoutes
 import PropertyCreation from "./components/PropertyCreation";
+import ManageRental from "./components/ManageRental";
 import "./tailwind.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
@@ -36,6 +37,15 @@ const App = () => {
           element={
             <ProtectedRoutes>
               <PropertyCreation />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/manage-rentals"
+          element={
+            <ProtectedRoutes>
+              <ManageRental />
             </ProtectedRoutes>
           }
         />
