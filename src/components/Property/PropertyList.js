@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import PropertyCard from "./PropertyCard"; // Import the PropertyCard component
 
 const PropertyList = () => {
   const [properties, setProperties] = useState([]); // Default empty array
@@ -24,32 +25,20 @@ const PropertyList = () => {
     fetchProperties();
   }, []);
 
-  if (loading) return <p>Loading properties...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (loading) return <p className="text-center">Loading properties...</p>;
+  if (error) return <p className="text-center text-red-500">Error: {error}</p>;
 
   return (
-    <div>
-      <h2>Available Properties</h2>
+    <div className="container mx-auto p-4">
+      <h2 className="text-2xl font-bold mb-4">Available Properties</h2>
       {properties.length === 0 ? (
         <p>No properties found.</p>
       ) : (
-        <ul>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {properties.map((property) => (
-            <li key={property._id}>
-              <h3>{property.title}</h3>
-              <p>{property.description}</p>
-              <p>Location: {property.location}</p>
-              <p>Price: ${property.price}</p>
-              {property.images.length > 0 && (
-                <div>
-                  {property.images.map((image, index) => (
-                    <img key={index} src={image} alt={property.title} style={{ width: '100px', height: 'auto', margin: '5px' }} />
-                  ))}
-                </div>
-              )}
-            </li>
+            <PropertyCard key={property._id} property={property} />
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

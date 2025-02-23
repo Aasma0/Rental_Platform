@@ -7,8 +7,8 @@ import Dashboard from "./components/Dashboard/Dashboard";
 import RegistrationComponent from "./components/registration";
 import CategoryComponent from "./components/category/CategoryComponent";
 import ProtectedRoutes from "./protectedRoutes/protectedRoutes"; // Import ProtectedRoutes
-import PropertyCreation from "./components/PropertyCreation";
-import PropertyList from "./components/PropertyList";
+import PropertyCreation from "./components/Property/PropertyCreation";
+import PropertyList from "./components/Property/PropertyList";
 
 import "./tailwind.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
