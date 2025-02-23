@@ -4,6 +4,7 @@ const connectDB = require('./src/config/db');
 const authRoute = require('./src/routes/UserRoute');
 const categoryRoutes = require('./src/routes/categoryRoute');
 const propertyRoutes = require('./src/routes/PropertyRoute');
+const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -14,6 +15,9 @@ connectDB();
 // Middleware
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(express.json());
+
+// Serve static files from the 'uploads' directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/auth', authRoute);

@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { createProperty } = require("../controllers/PropertyController");
+const { createProperty, getAllProperties } = require("../controllers/PropertyController");
 const authMiddleware = require("../middleware/authMiddleware");
 const multer = require("multer");
+const path = require("path");
 
 // Set up Multer storage (store images in "uploads" folder)
 const storage = multer.diskStorage({
@@ -28,7 +29,6 @@ const upload = multer({ storage, fileFilter }).array("images", 10);
 
 // Modify route to use Multer
 router.post("/create", authMiddleware, upload, createProperty);
-// router.get("/my-properties", authMiddleware, getUserProperties); // New route for owner's properties
-
+router.get("/all", getAllProperties); // Route to get all properties
 
 module.exports = router;

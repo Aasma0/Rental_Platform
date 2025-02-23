@@ -1,5 +1,6 @@
 const Property = require("../models/PropertyModel");
 
+// Create a new property
 const createProperty = async (req, res) => {
   try {
     const { title, description, location, price, category } = req.body;
@@ -27,20 +28,24 @@ const createProperty = async (req, res) => {
     console.error("Error creating property:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
-
 };
 
-// New function to get properties of the logged-in user
-// const getUserProperties = async (req, res) => {
-//   try {
-//     const userId = req.user.id;
-//     const properties = await Property.find({ owner: userId });
+// Fetch all properties
+const getAllProperties = async (req, res) => {
+  try {
+    const properties = await Property.find().populate("category owner", "name");
+    
+    // Map through properties to include full image URLs
+    const propertiesWithImages = properties.map(property => ({
+      ...property.toObject(),
+      images: property.images.map(image => `${req.protocol}://${req.get('host')}/${image.split('/').pop()}`) // Create full URL for each image
+    }));
 
-//     res.status(200).json({ properties });
-//   } catch (error) {
-//     console.error("Error fetching user's properties:", error);
-//     res.status(500).json({ message: "Internal Server Error" });
-//   }
-// };
+    res.status(200).json(propertiesWithImages);
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
-module.exports = { createProperty};
+module.exports = { createProperty, getAllProperties };
