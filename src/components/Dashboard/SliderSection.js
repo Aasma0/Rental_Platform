@@ -25,7 +25,8 @@ const SliderSection = () => {
             <a href="#" className="text-white">Buy</a>
             <Link to="/property" className="text-white">Rent</Link> {/* Updated "Rent" to link to property creation */}
             <a href="#" className="text-white">Sell</a>
-            <Link to="/manage-rentals">Manage Rentals</Link>
+            <Link to="/rentals" className="text-white">See Rentals</Link>
+
             {userRole === "admin" && (
               <Link to="/category" className="text-white">Category</Link> /* Updated Category link */
             )}

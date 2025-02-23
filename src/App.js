@@ -8,7 +8,8 @@ import RegistrationComponent from "./components/registration";
 import CategoryComponent from "./components/category/CategoryComponent";
 import ProtectedRoutes from "./protectedRoutes/protectedRoutes"; // Import ProtectedRoutes
 import PropertyCreation from "./components/PropertyCreation";
-import ManageRental from "./components/ManageRental";
+import PropertyList from "./components/PropertyList";
+
 import "./tailwind.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
@@ -41,14 +42,15 @@ const App = () => {
           }
         />
 
-        <Route
-          path="/manage-rentals"
+<Route
+          path="/rentals"
           element={
             <ProtectedRoutes>
-              <ManageRental />
+              <PropertyList  />
             </ProtectedRoutes>
           }
         />
+
 
         {/* Protected Route: Only Admins can access Category */}
         <Route
