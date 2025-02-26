@@ -5,6 +5,7 @@ const PropertyList = () => {
   const [properties, setProperties] = useState([]); // Default empty array
   const [loading, setLoading] = useState(true); // Track loading state
   const [error, setError] = useState(null);
+  const [bookedDates, setBookedDates] = useState([]); // Track booked dates
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -25,6 +26,10 @@ const PropertyList = () => {
     fetchProperties();
   }, []);
 
+  const handleBooking = (startDate, endDate) => {
+    setBookedDates([...bookedDates, { start: startDate.toISOString(), end: endDate.toISOString() }]);
+  };
+
   if (loading) return <p className="text-center">Loading properties...</p>;
   if (error) return <p className="text-center text-red-500">Error: {error}</p>;
 
@@ -36,7 +41,7 @@ const PropertyList = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {properties.map((property) => (
-            <PropertyCard key={property._id} property={property} />
+            <PropertyCard key={property._id} property={property} bookedDates={bookedDates} onBook={handleBooking} />
           ))}
         </div>
       )}
