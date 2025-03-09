@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import CategoryList from "./CategoryList"; // Import CategoryList
 import PropertyList from "./PropertyListing"; // Import PropertyList
 import SliderSection from "./SliderSection";
+import NavbarSection from "../LandingPage/NavBar";
 
 const Dashboard = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -13,6 +14,7 @@ const Dashboard = () => {
 
   return (
     <div>
+      <NavbarSection/>
       <SliderSection />
       <div className="container mx-auto p-4">
         <div className="flex">

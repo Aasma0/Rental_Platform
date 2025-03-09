@@ -1,22 +1,16 @@
-import axios from "axios";
-import config from "./config";
+// src/config/axiosConfig.js
+import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: config.baseURL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  baseURL: 'http://localhost:8000/api', // backend base URL
 });
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
-    // console.log(token);
+    // Get token from localStorage
+    const token = localStorage.getItem('token');
     if (token) {
-      config.headers["Authorization"] = token; 
-      // if Bearer is not present in your token
-      // config.headers["Authorization"] = `Bearer ${token}`; 
-
+      config.headers['Authorization'] = `Bearer ${token}`; // Add token to the headers
     }
     return config;
   },

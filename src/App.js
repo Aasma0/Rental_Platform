@@ -13,6 +13,8 @@ import PropertyList from "./components/Property/PropertyList";
 
 import "./tailwind.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import AdminDashboard from "./components/Admin/Dashboard/AdminDashboard";
+import ProfileComponent from "./components/Dashboard/ProfileComponent";
 
 const App = () => {
   const authState = useSelector((state) => state.auth); // Get auth state from Redux
@@ -51,12 +53,28 @@ const App = () => {
             </ProtectedRoutes>
           }
         />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoutes>
+              <ProfileComponent />
+            </ProtectedRoutes>
+          }
+        />
         {/* Protected Route: Only Admins can access Category */}
         <Route
           path="/category"
           element={
             <ProtectedRoutes role="admin">
               <CategoryComponent />
+            </ProtectedRoutes>
+          }
+        />
+        <Route
+          path="/admin-dash"
+          element={
+            <ProtectedRoutes role="admin">
+              <AdminDashboard />
             </ProtectedRoutes>
           }
         />

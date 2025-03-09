@@ -47,7 +47,12 @@ const LoginComponent = () => {
         toast.success("Login successful");
   
         setTimeout(() => {
-          navigate("/dash");
+          // Redirect user based on role
+          if (response.data.role === "admin") {
+            navigate("/admin-dash");  // Redirect admin to admin dashboard
+          } else {
+            navigate("/dash");  // Redirect user to user dashboard
+          }
         }, 1000);
       } catch (error) {
         console.error(error.response.data.msg);
@@ -55,6 +60,7 @@ const LoginComponent = () => {
       }
     }
   };
+  
   
   
   const togglePasswordVisibility = () => {
