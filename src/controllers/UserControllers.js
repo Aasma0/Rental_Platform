@@ -66,7 +66,39 @@ token: token, // Remove the "Bearer" prefix
   }
 };
 
+
+// Function to update user profile
+const updateProfile = async (req, res) => {
+  const { name, email, password } = req.body;
+
+  try {
+    // Get the user by their ID from the token (provided by middleware)
+    const user = await User.findById(req.user.id); 
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    // Update profile fields if provided
+    if (name) user.name = name;
+    if (email) user.email = email;
+
+    if (password) {
+      // If password is updated, hash it
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+    }
+
+    await user.save(); // Save the updated user
+
+    res.status(200).json({ msg: "Profile updated successfully", user });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
+  updateProfile,
 };

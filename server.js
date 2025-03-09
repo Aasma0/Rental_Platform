@@ -2,9 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./src/config/db');
 const authRoute = require('./src/routes/UserRoute');
-const categoryRoutes = require('./src/routes/categoryRoute');
 const tagRoutes = require('./src/routes/TagRoute');
 const propertyRoutes = require('./src/routes/PropertyRoute');
+const categoryRoutes = require('./src/routes/categoryRoute');
+const adminRoutes = require('./src/routes/adminRoutes');
 const bookingRoutes = require('./src/routes/bookingRoutes');
 const path = require('path');
 
@@ -25,6 +26,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/auth', authRoute);
 app.use('/api/category', categoryRoutes);
 app.use('/api', tagRoutes);
+app.use('/api/admin', adminRoutes); // Registering the admin routes
 app.use('/api/property', propertyRoutes);
 app.use('/api/booking', bookingRoutes);
 
