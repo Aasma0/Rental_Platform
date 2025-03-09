@@ -12,6 +12,10 @@ const PropertySchema = new mongoose.Schema(
       ref: "Category",
       required: true,
     },
+    tags: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tag",  // Reference to Tag model
+    }],
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

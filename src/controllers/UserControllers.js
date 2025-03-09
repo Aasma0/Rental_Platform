@@ -55,7 +55,7 @@ const loginUser = async (req, res) => {
         if (err) throw err;
         res.json({
           msg: "User logged in successfully",
-          token: `Bearer ${token}`,
+token: token, // Remove the "Bearer" prefix
           role: user.role, // ✅ Include role in response
         });
       }
