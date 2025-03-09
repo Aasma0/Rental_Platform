@@ -3,6 +3,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 dotenv.config();
+
+// Register User
 const registerUser = async (req, res) => {
   const { name, email, password, role } = req.body;
   try {
@@ -14,8 +16,7 @@ const registerUser = async (req, res) => {
       name: name,
       email: email,
       password: password,
-      role: role
-
+      role: role,
     });
     await user.save();
     res.status(201).json({
@@ -27,6 +28,8 @@ const registerUser = async (req, res) => {
     res.status(500).send({ msg: err.message });
   }
 };
+
+// Login User
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -43,7 +46,7 @@ const loginUser = async (req, res) => {
     const payload = {
       user: {
         id: user.id,
-        role: user.role, // ✅ Include role in payload
+        role: user.role, // Include role in payload
       },
     };
 
@@ -55,8 +58,8 @@ const loginUser = async (req, res) => {
         if (err) throw err;
         res.json({
           msg: "User logged in successfully",
-token: token, // Remove the "Bearer" prefix
-          role: user.role, // ✅ Include role in response
+          token: token,
+          role: user.role, // Include role in response
         });
       }
     );
@@ -66,39 +69,42 @@ token: token, // Remove the "Bearer" prefix
   }
 };
 
-
-// Function to update user profile
-const updateProfile = async (req, res) => {
-  const { name, email, password } = req.body;
-
+const getUserProfile = async (req, res) => {
   try {
-    // Get the user by their ID from the token (provided by middleware)
-    const user = await User.findById(req.user.id); 
+    const user = await User.findById(req.user.id); // Assuming `req.user.id` is set by `authMiddleware`
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
-
-    // Update profile fields if provided
-    if (name) user.name = name;
-    if (email) user.email = email;
-
-    if (password) {
-      // If password is updated, hash it
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
-    }
-
-    await user.save(); // Save the updated user
-
-    res.status(200).json({ msg: "Profile updated successfully", user });
+    res.json({ user });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: "Server error" });
   }
 };
 
-module.exports = {
-  registerUser,
-  loginUser,
-  updateProfile,
+// Update the logged-in user's profile
+const updateUserProfile = async (req, res) => {
+  const { name, email, password } = req.body;
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    // Optionally update the password here
+    if (password) {
+      user.password = password; // Hash password before saving (already done in the model)
+    }
+
+    user.name = name;
+    user.email = email;
+
+    await user.save();
+    res.json({ msg: "Profile updated successfully" });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ msg: "Server error" });
+  }
 };
+
+module.exports = { registerUser, loginUser, getUserProfile, updateUserProfile };

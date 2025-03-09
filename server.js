@@ -7,6 +7,7 @@ const propertyRoutes = require('./src/routes/PropertyRoute');
 const categoryRoutes = require('./src/routes/categoryRoute');
 const adminRoutes = require('./src/routes/adminRoutes');
 const bookingRoutes = require('./src/routes/bookingRoutes');
+const userRoutes = require('./src/routes/UserRoute'); // Correct import
 const path = require('path');
 
 const app = express();
@@ -23,13 +24,13 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
-app.use('/auth', authRoute);
+app.use('/auth', authRoute);  // Authentication routes
+app.use('/api/user', userRoutes);  // User profile routes, updated path
 app.use('/api/category', categoryRoutes);
 app.use('/api', tagRoutes);
 app.use('/api/admin', adminRoutes); // Registering the admin routes
 app.use('/api/property', propertyRoutes);
 app.use('/api/booking', bookingRoutes);
-
 
 // Start the server
 app.listen(port, () => {

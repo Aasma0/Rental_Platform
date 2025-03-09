@@ -1,10 +1,18 @@
 const express = require('express');
-const { registerUser, loginUser, updateProfile } = require('../controllers/UserControllers');
-const auth = require('../middleware/authMiddleware');
+const { registerUser, loginUser, getUserProfile, updateUserProfile } = require('../controllers/UserControllers');
+const authMiddleware = require('../middleware/authMiddleware');
 const router = express.Router();
 
+// Register User
 router.post('/register', registerUser);
+
+// Login User
 router.post('/login', loginUser);
-router.patch("/profile", auth, updateProfile); // Add the new route
+
+// Route for getting user profile
+router.get("/profile", authMiddleware, getUserProfile);
+
+// Route for updating user profile
+router.patch("/profile", authMiddleware, updateUserProfile);  // Corrected route
 
 module.exports = router;
