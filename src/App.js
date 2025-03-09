@@ -5,9 +5,10 @@ import LandingComponent from "./components/LandingPage/LandingComponent";
 import LoginComponent from "./components/login";
 import Dashboard from "./components/Dashboard/Dashboard";
 import RegistrationComponent from "./components/registration";
-import CategoryComponent from "./components/category/CategoryComponent";
+import CategoryComponent from "./components/Admin/category/CategoryComponent";
 import ProtectedRoutes from "./protectedRoutes/protectedRoutes"; // Import ProtectedRoutes
 import PropertyCreation from "./components/Property/PropertyCreation";
+import CategoryPage from "./components/Dashboard/CategoryPage"; // Import CategoryPage
 import PropertyList from "./components/Property/PropertyList";
 
 import "./tailwind.css";
@@ -23,7 +24,6 @@ const App = () => {
         <Route path="/" element={<LandingComponent />} />
         <Route path="/login" element={<LoginComponent />} />
         <Route path="/registration" element={<RegistrationComponent />} />
-
         {/* Protected Route: Only logged-in users can access Dashboard */}
         <Route
           path="/dash"
@@ -41,17 +41,16 @@ const App = () => {
             </ProtectedRoutes>
           }
         />
-
-<Route
+        <Route path="/category/:categoryId" element={<CategoryPage />} />{" "}
+        {/* New route */}
+        <Route
           path="/rentals"
           element={
             <ProtectedRoutes>
-              <PropertyList  />
+              <PropertyList />
             </ProtectedRoutes>
           }
         />
-
-
         {/* Protected Route: Only Admins can access Category */}
         <Route
           path="/category"

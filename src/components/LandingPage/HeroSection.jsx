@@ -2,38 +2,48 @@ import React from "react";
 
 const HeroSection = () => {
   return (
-    <div
-      className="relative h-[650px] bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: 'url("image/landing.jpg")' }}
-    >
-      {/* Navigation */}
-      <div className="absolute top-0 w-full">
-        <div className="flex justify-between items-center p-5">
-          <nav className="flex gap-4">
-            <a href="#" className="text-white">Buy</a>
-            <a href="#" className="text-white">Rent</a>
-            <a href="#" className="text-white">Sell</a>
-            <a href="#" className="text-white">Manage Rentals</a>
-          </nav>
-          <nav className="flex gap-4">
-            <a href="#" className="text-white">Help</a>
-            <a href="/login" className="text-white">Sign In</a>
-          </nav>
+    <>
+      {/* Hero Section */}
+      <section className="flex justify-between items-start py-16 px-12 bg-white">
+        {/* Left Side Content */}
+        <div className="max-w-lg">
+          <p className="text-sm font-semibold uppercase">Welcome</p>
+          <h1 className="text-6xl font-bold leading-tight">
+            Explore available <br />
+            <span className="font-extrabold">Properties.</span>
+          </h1>
         </div>
+
+        {/* Right Side Content */}
+        <div className="text-right">
+          <p className="text-sm text-gray-700 mb-4">
+            Book smartly with Hearth & Co.
+          </p>
+          <button className="bg-black text-white px-6 py-2 rounded-md text-lg">
+            View
+          </button>
+        </div>
+      </section>
+
+      {/* Feature Section */}
+      <div className="grid grid-cols-2 gap-0">
+      <div className="flex flex-col justify-center p-6">
+      <h2 className="text-3xl font-bold leading-snug">
+            Explore Powerful Features <br />
+            Tailored for Your Property <br />
+            Journey with us.
+          </h2>
+          <p className="text-gray-600 mt-4">
+            Our platform empowers you to effortlessly list, rent, buy, and sell
+            properties. Enjoy a seamless experience with user-friendly tools
+            designed to meet all your real estate needs.
+          </p>
       </div>
 
-      {/* Search Bar */}
-      <div className="absolute top-[200px] left-1/2 transform -translate-x-1/2 flex items-center">
-        <input
-          type="text"
-          placeholder="Enter an address, neighborhood, city, or ZIP code"
-          className="border-none outline-none p-4 w-[400px] h-[56px] rounded-l-full"
-        />
-        <button className="bg-[#007bff] text-white border-none p-4 rounded-r-full">
-          <i className="fas fa-search"></i>
-        </button>
-      </div>
+      {/* Right Image */}
+      <img className="w-full h-[350px] object-cover" src="image/logo.png" alt="Hearth&Co.logo" />
     </div>
+    </>
   );
 };
 

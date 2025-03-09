@@ -23,24 +23,42 @@ const PropertyCard = ({ property, bookedDates, onBook }) => {
     
     const confirmBooking = async () => {
         if (startDate && endDate) {
-            const response = await fetch(`http://localhost:8000/api/booking/book/${property._id}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ startDate, endDate }),
-            });
+            try {
+                const token = localStorage.getItem("token"); // Retrieve auth token
+                if (!token) {
+                    setBookingMessage("You must be logged in to book a property.");
+                    return;
+                }
     
-            if (response.ok) {
+                const response = await fetch(`http://localhost:8000/api/booking/book/${property._id}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`, // Attach token
+                    },
+                    body: JSON.stringify({ startDate, endDate }),
+                });
+    
                 const data = await response.json();
-                setBookingMessage(data.message);
-                onBook(startDate, endDate); // Notify parent of the booking
-                setStartDate(null);
-                setEndDate(null);
-                setIsBooking(false);
+    
+                if (response.ok) {
+                    setBookingMessage("Booking successful!");
+                    onBook(startDate, endDate); // Notify parent to refresh UI
+                    setStartDate(null);
+                    setEndDate(null);
+                    setIsBooking(false);
+                } else {
+                    setBookingMessage(data.message || "Booking failed.");
+                }
+            } catch (error) {
+                console.error("Error booking property:", error);
+                setBookingMessage("An error occurred. Please try again.");
             }
+        } else {
+            setBookingMessage("Please select a valid booking date range.");
         }
     };
+    
     
     const isBooked = (date) => {
         return bookedDates.some((bookedDate) => {
