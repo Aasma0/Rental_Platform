@@ -27,7 +27,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/auth', authRoute);  // Authentication routes
 app.use('/api/user', userRoutes);  // User profile routes, updated path
 app.use('/api/category', categoryRoutes);
-app.use('/api', tagRoutes);
+app.use('/api/tags', tagRoutes);
 app.use('/api/admin', adminRoutes); // Registering the admin routes
 app.use('/api/property', propertyRoutes);
 app.use('/api/booking', bookingRoutes);

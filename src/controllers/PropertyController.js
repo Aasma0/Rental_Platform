@@ -90,4 +90,45 @@ const getAllProperties = async (req, res) => {
   }
 };
 
-module.exports = { createProperty, getAllProperties };
+const searchProperties = async (req, res) => {
+  try {
+    const { search } = req.query;
+
+    if (!search) {
+      return res.status(400).json({ message: "Search query is required" });
+    }
+
+    let tagMatch = [];
+
+    // Find matching tag IDs
+    const matchingTags = await Tag.find({ name: { $regex: search, $options: "i" } });
+    if (matchingTags.length > 0) {
+      tagMatch = matchingTags.map(tag => tag._id);
+    }
+
+    // Search for properties by location or tags
+    const query = {
+      $or: [
+        { location: { $regex: search, $options: "i" } },
+        { tags: { $in: tagMatch } },
+      ],
+    };
+
+    let properties = await Property.find(query).populate("tags", "name");
+
+    // Format image URLs before sending response
+    const propertiesWithImages = properties.map(property => ({
+      ...property.toObject(),
+      images: property.images.map(image => `${req.protocol}://${req.get('host')}/${image.split('/').pop()}`)
+    }));
+
+    res.json({ properties: propertiesWithImages });
+  } catch (error) {
+    console.error("Search Error:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+
+
+module.exports = { createProperty, getAllProperties, searchProperties };

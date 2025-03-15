@@ -2,11 +2,11 @@
 
 const express = require("express");
 const Tag = require("../models/TagModel");
-const isAdmin = require("../middleware/isAdmin"); // Import the isAdmin middleware
+const isAdmin = require("../middleware/authMiddleware"); // Import the isAdmin middleware
 const router = express.Router();
 
 // Route to fetch all tags (accessible by all users)
-router.get("/tags", async (req, res) => {
+router.get("/view", async (req, res) => {
   try {
     const tags = await Tag.find(); // Fetch all tags from the database
     res.status(200).json({ tags }); // Send the tags in the response
@@ -17,7 +17,7 @@ router.get("/tags", async (req, res) => {
 });
 
 // Route to create a new tag (only accessible by admins)
-router.post("/tags", isAdmin, async (req, res) => {
+router.post("/create", isAdmin, async (req, res) => {
   const { name } = req.body;
 
   // Check if the name is provided

@@ -1,60 +1,101 @@
 const Booking = require("../models/BookingModel");
 const Property = require("../models/PropertyModel");
 
-// Book a property
-const bookProperty = async (req, res) => {
-  try {
-    const { startDate, endDate } = req.body;
-    const { propertyId } = req.params;
-    const userId = req.user.id;
+// Book a property (only if no existing booking and no overlapping bookings)
+exports.bookProperty = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.body;
+        const propertyId = req.params.propertyId;
+        const userId = req.user.id; 
 
-    if (!startDate || !endDate) {
-      return res.status(400).json({ message: "Start date and end date are required" });
+        // Check if user already has a booking for this property
+        const existingBooking = await Booking.findOne({ user: userId, property: propertyId });
+
+        if (existingBooking) {
+            return res.status(400).json({ message: "You have already booked this property. Update or cancel your booking instead." });
+        }
+
+        // Check if the property has overlapping bookings
+        const overlappingBooking = await Booking.findOne({
+            property: propertyId,
+            $or: [
+                { startDate: { $lte: new Date(endDate), $gte: new Date(startDate) } },
+                { endDate: { $lte: new Date(endDate), $gte: new Date(startDate) } }
+            ]
+        });
+
+        if (overlappingBooking) {
+            return res.status(400).json({ message: "This property is already booked for the selected dates." });
+        }
+
+        const newBooking = new Booking({
+            user: userId,
+            property: propertyId,
+            startDate,
+            endDate
+        });
+
+        await newBooking.save();
+        res.status(201).json({ message: "Booking successful!", booking: newBooking });
+
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
     }
-
-    const property = await Property.findById(propertyId);
-    if (!property) {
-      return res.status(404).json({ message: "Property not found" });
-    }
-
-    // Check if the property is already booked for the selected dates
-    const overlappingBooking = await Booking.findOne({
-      property: propertyId,
-      $or: [
-        { startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) } },
-      ],
-    });
-
-    if (overlappingBooking) {
-      return res.status(400).json({ message: "Property is already booked for the selected dates" });
-    }
-
-    // Create a new booking
-    const booking = new Booking({
-      property: propertyId,
-      user: userId,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
-    });
-
-    await booking.save();
-    res.status(201).json({ message: "Booking successful", booking });
-  } catch (error) {
-    console.error("Error booking property:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
 };
 
-// Get all bookings for a user
-const getBookings = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const bookings = await Booking.find({ user: userId }).populate("property");
-    res.status(200).json({ bookings });
-  } catch (error) {
-    console.error("Error fetching bookings:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
+// Update a booking
+exports.updateBooking = async (req, res) => {
+    try {
+        const { startDate, endDate } = req.body;
+        const bookingId = req.params.bookingId;
+        const userId = req.user.id;
+
+        const booking = await Booking.findOne({ _id: bookingId, user: userId });
+
+        if (!booking) {
+            return res.status(404).json({ message: "Booking not found or unauthorized." });
+        }
+
+        // Check for overlapping bookings
+        const overlappingBooking = await Booking.findOne({
+            property: booking.property,
+            _id: { $ne: bookingId },
+            $or: [
+                { startDate: { $lte: new Date(endDate), $gte: new Date(startDate) } },
+                { endDate: { $lte: new Date(endDate), $gte: new Date(startDate) } }
+            ]
+        });
+
+        if (overlappingBooking) {
+            return res.status(400).json({ message: "This property is already booked for the selected dates." });
+        }
+
+        booking.startDate = startDate;
+        booking.endDate = endDate;
+        await booking.save();
+
+        res.status(200).json({ message: "Booking updated successfully!", booking });
+
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
 };
 
-module.exports = { bookProperty, getBookings };
+// Cancel a booking
+exports.cancelBooking = async (req, res) => {
+    try {
+        const bookingId = req.params.bookingId;
+        const userId = req.user.id;
+
+        const booking = await Booking.findOneAndDelete({ _id: bookingId, user: userId });
+
+        if (!booking) {
+            return res.status(404).json({ message: "Booking not found or unauthorized." });
+        }
+
+        res.status(200).json({ message: "Booking canceled successfully!" });
+
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
+    }
+};

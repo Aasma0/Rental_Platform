@@ -1,13 +1,10 @@
 const express = require("express");
-const { bookProperty, getBookings } = require("../controllers/bookingController");
+const { bookProperty, updateBooking, cancelBooking } = require("../controllers/bookingController");
 const authMiddleware = require("../middleware/authMiddleware");
-
 const router = express.Router();
 
-// Route to book a property
 router.post("/book/:propertyId", authMiddleware, bookProperty);
-
-// Route to get all bookings
-router.get("/", authMiddleware, getBookings);
+router.put("/update/:bookingId", authMiddleware, updateBooking);
+router.delete("/cancel/:bookingId", authMiddleware, cancelBooking);
 
 module.exports = router;
