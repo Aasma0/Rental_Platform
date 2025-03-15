@@ -7,7 +7,16 @@ import Sidebar from "../LandingPage/Sidebar";
 import { FaEye, FaEyeSlash } from "react-icons/fa"; // 👁️ Import Icons
 
 const ProfileComponent = () => {
-  const [user, setUser] = useState({ name: "", email: "", password: "" });
+  const [user, setUser] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    location: "",
+    bio: "",
+    profilePicture: null, // For file upload
+  });
+
+  const [preview, setPreview] = useState(null); // For image preview
   const [loading, setLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false); // 🔄 Toggle Password Visibility
@@ -17,6 +26,11 @@ const ProfileComponent = () => {
       try {
         const response = await axiosInstance.get("/user/profile");
         setUser(response.data.user);
+
+        // If user has a profile picture, show preview
+        if (response.data.user.profilePicture) {
+          setPreview(`http://localhost:8000/${response.data.user.profilePicture}`);
+        }
       } catch (error) {
         console.error("Error fetching user profile:", error);
       }
@@ -24,17 +38,42 @@ const ProfileComponent = () => {
     fetchUserProfile();
   }, []);
 
+  // Handle text input change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setUser({ ...user, [name]: value });
   };
 
+  // Handle file selection
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setUser({ ...user, profilePicture: file });
+    setPreview(URL.createObjectURL(file)); // Show image preview
+  };
+
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
+    const formData = new FormData();
+    formData.append("name", user.name);
+    formData.append("email", user.email);
+    formData.append("phone", user.phone);
+    formData.append("location", user.location);
+    formData.append("bio", user.bio);
+
+    if (user.profilePicture) {
+      formData.append("profilePicture", user.profilePicture);
+    }
+
     try {
-      const response = await axiosInstance.patch("/user/profile", user);
+      const response = await axiosInstance.patch("/user/profile", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
       toast.success(response.data.msg);
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -60,9 +99,16 @@ const ProfileComponent = () => {
       <div className="flex justify-center items-center mt-10">
         <div className="w-full max-w-lg bg-white shadow-lg rounded-lg p-6">
           <h1 className="text-2xl font-bold text-center mb-6 text-gray-700">Edit Profile</h1>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-4">
             <ToastContainer />
 
+            {/* Profile Picture Upload */}
+            <div className="flex flex-col items-center">
+              {preview && <img src={preview} alt="Profile Preview" className="w-24 h-24 rounded-full mb-2" />}
+              <input type="file" accept="image/*" onChange={handleFileChange} />
+            </div>
+
+            {/* Name */}
             <div className="flex flex-col">
               <label htmlFor="name" className="mb-1 text-gray-600">Name</label>
               <input
@@ -76,6 +122,7 @@ const ProfileComponent = () => {
               />
             </div>
 
+            {/* Email */}
             <div className="flex flex-col">
               <label htmlFor="email" className="mb-1 text-gray-600">Email</label>
               <input
@@ -89,27 +136,45 @@ const ProfileComponent = () => {
               />
             </div>
 
-            <div className="flex flex-col relative">
-              <label htmlFor="password" className="mb-1 text-gray-600">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"} // 🔄 Toggle Password
-                  name="password"
-                  id="password"
-                  value={user.password}
-                  onChange={handleInputChange}
-                  className="p-2 border border-gray-300 rounded w-full focus:ring-2 focus:ring-blue-400 pr-10"
-                  placeholder="Enter new password (optional)"
-                />
-                {/* 👁️ Toggle Button */}
-                <button
-                  type="button"
-                  onClick={togglePasswordVisibility}
-                  className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              </div>
+            {/* Phone */}
+            <div className="flex flex-col">
+              <label htmlFor="phone" className="mb-1 text-gray-600">Phone</label>
+              <input
+                type="text"
+                name="phone"
+                id="phone"
+                value={user.phone}
+                onChange={handleInputChange}
+                className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400"
+                required
+              />
+            </div>
+
+            {/* Location */}
+            <div className="flex flex-col">
+              <label htmlFor="location" className="mb-1 text-gray-600">Location</label>
+              <input
+                type="text"
+                name="location"
+                id="location"
+                value={user.location}
+                onChange={handleInputChange}
+                className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400"
+                required
+              />
+            </div>
+
+            {/* Bio */}
+            <div className="flex flex-col">
+              <label htmlFor="bio" className="mb-1 text-gray-600">Bio</label>
+              <textarea
+                name="bio"
+                id="bio"
+                value={user.bio}
+                onChange={handleInputChange}
+                className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400"
+                required
+              />
             </div>
 
             <button

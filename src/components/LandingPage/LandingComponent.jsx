@@ -13,7 +13,7 @@ const LandingPage = () => {
   return (
     <div>
       <NavbarSection/>
-      <HeroSection /> <br />
+      <HeroSection /> 
       <ChessboardSection />
       <CardsSection />
       <FAQsSection/>
