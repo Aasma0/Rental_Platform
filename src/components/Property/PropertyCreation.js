@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import NavbarSection from "../LandingPage/NavBar"; // ✅ Import Navbar
+import Sidebar from "../LandingPage/Sidebar"; // ✅ Import Sidebar
 
 const PropertyCreation = () => {
   const navigate = useNavigate();
@@ -16,6 +18,7 @@ const PropertyCreation = () => {
   const [tags, setTags] = useState([]); // Store fetched tags
   const [selectedTags, setSelectedTags] = useState([]); // Store selected tags for property
   const [error, setError] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // ✅ Sidebar toggle state
 
   // Fetch categories
   useEffect(() => {
@@ -34,7 +37,7 @@ const PropertyCreation = () => {
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/tags");
+        const response = await axios.get("http://localhost:8000/api/tags/view");
         if (Array.isArray(response.data.tags)) {
           setTags(response.data.tags);
         } else {
@@ -117,7 +120,13 @@ const PropertyCreation = () => {
   };
   
   return (
-    <div className="max-w-4xl mx-auto p-8">
+    <div className="relative min-h-screen bg-gray-100">
+      {/* ✅ Navbar & Sidebar */}
+      <NavbarSection toggleSidebar={() => setIsSidebarOpen((prev) => !prev)} />
+      <Sidebar isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen((prev) => !prev)} />
+      <div className="flex justify-center items-center mt-10">
+        <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg p-6">
+
       <h1 className="text-2xl font-semibold mb-6">Create a New Property</h1>
       {error && <p className="text-red-500">{error}</p>}
       <form onSubmit={handleSubmit} encType="multipart/form-data">
@@ -219,6 +228,11 @@ const PropertyCreation = () => {
         </button>
       </form>
     </div>
+    </div>
+    </div>
+
+
+
   );
 };
 

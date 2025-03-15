@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import BookingDatePicker from "./BookingDatePicker";
 
 const PropertyCard = ({ property, bookedDates, onBook }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -192,6 +193,19 @@ const PropertyCard = ({ property, bookedDates, onBook }) => {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+      {isBooking && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-5 w-4/5 max-w-md relative">
+            <span
+              className="absolute top-2 right-2 cursor-pointer text-gray-500 text-lg font-bold"
+              onClick={() => setIsBooking(false)}
+            >
+              &times;
+            </span>
+            <BookingDatePicker bookedDates={bookedDates} onBook={confirmBooking} />
           </div>
         </div>
       )}
