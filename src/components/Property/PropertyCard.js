@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import BookingDatePicker from "./BookingDatePicker";
+import BookingDatePicker from "../Booking/BookingDatePicker";
 
 const PropertyCard = ({ property, bookedDates, onBook }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,46 +24,48 @@ const PropertyCard = ({ property, bookedDates, onBook }) => {
     setIsBooking(true);
   };
 
-  const confirmBooking = async () => {
-    if (startDate && endDate) {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          setBookingMessage("You must be logged in to book a property.");
-          return;
-        }
-
-        const response = await fetch(
-          `http://localhost:8000/api/booking/book/${property._id}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ startDate, endDate }),
-          }
-        );
-
-        const data = await response.json();
-
-        if (response.ok) {
-          setBookingMessage("Booking successful!");
-          onBook(startDate, endDate);
-          setStartDate(null);
-          setEndDate(null);
-          setIsBooking(false);
-        } else {
-          setBookingMessage(data.message || "Booking failed.");
-        }
-      } catch (error) {
-        console.error("Error booking property:", error);
-        setBookingMessage("An error occurred. Please try again.");
+  const confirmBooking = async (startDate, endDate) => {
+    if (!startDate || !endDate) {
+      setBookingMessage("Please select both start and end dates.");
+      return;
+    }
+  
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setBookingMessage("You must be logged in to book a property.");
+        return;
       }
-    } else {
-      setBookingMessage("Please select a valid booking date range.");
+  
+      const response = await fetch(
+        `http://localhost:8000/api/booking/book/${property._id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ startDate, endDate }),
+        }
+      );
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        setBookingMessage("Booking successful!");
+        onBook(startDate, endDate); // Trigger the booking logic in PropertyCard
+        setStartDate(null);
+        setEndDate(null);
+        setIsBooking(false);
+      } else {
+        setBookingMessage(data.message || "Booking failed.");
+      }
+    } catch (error) {
+      console.error("Error booking property:", error);
+      setBookingMessage("An error occurred. Please try again.");
     }
   };
+  
 
   const isBooked = (date) => {
     return bookedDates.some((bookedDate) => {

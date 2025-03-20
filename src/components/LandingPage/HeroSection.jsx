@@ -27,7 +27,7 @@ const HeroSection = () => {
 
       {/* Feature Section */}
       <div className="grid grid-cols-2 gap-0">
-      <div className="flex flex-col justify-center p-6">
+      <div className="flex flex-col justify-center p-6 ">
       <h2 className="text-3xl font-bold leading-snug">
             Explore Powerful Features <br />
             Tailored for Your Property <br />
@@ -41,7 +41,7 @@ const HeroSection = () => {
       </div>
 
       {/* Right Image */}
-      <img className="w-full h-[350px] object-cover" src="image/logo.png" alt="Hearth&Co.logo" />
+      <img className="w-full h-[340px] object-cover mb-6" src="image/logo.png" alt="Hearth&Co.logo" />
     </div>
     </>
   );

@@ -1,4 +1,3 @@
-// CategoryList.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -20,23 +19,20 @@ const CategoryList = () => {
   }, []);
 
   const handleCategoryClick = (categoryId) => {
-    navigate(`/category/${categoryId}`); // Navigate to the new page
+    navigate(`/category/${categoryId}`);
   };
 
   return (
-    <div>
-      <h2 className="text-xl font-semibold mb-4">Categories</h2>
-      <ul>
-        {categories.map((category) => (
-          <li
-            key={category._id}
-            className="cursor-pointer text-blue-500 mb-2"
-            onClick={() => handleCategoryClick(category._id)}
-          >
-            {category.name}
-          </li>
-        ))}
-      </ul>
+    <div className="w-[80%] mx-auto overflow-x-auto whitespace-nowrap py-4 flex space-x-4 px-4">
+      {categories.map((category) => (
+        <button
+          key={category._id}
+          onClick={() => handleCategoryClick(category._id)}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition-all"
+        >
+          {category.name}
+        </button>
+      ))}
     </div>
   );
 };

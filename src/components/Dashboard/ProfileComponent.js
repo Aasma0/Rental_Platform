@@ -4,7 +4,6 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import NavbarSection from "../LandingPage/NavBar";
 import Sidebar from "../LandingPage/Sidebar";
-import { FaEye, FaEyeSlash } from "react-icons/fa"; // 👁️ Import Icons
 
 const ProfileComponent = () => {
   const [user, setUser] = useState({

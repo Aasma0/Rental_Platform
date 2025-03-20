@@ -10,6 +10,8 @@ import ProtectedRoutes from "./protectedRoutes/protectedRoutes"; // Import Prote
 import PropertyCreation from "./components/Property/PropertyCreation";
 import CategoryPage from "./components/Dashboard/CategoryPage"; // Import CategoryPage
 import PropertyList from "./components/Property/PropertyList";
+import MyProperty from "./components/Property/MyProperty";
+import EditProperty from "./components/Property/EditProperty"; // Import the file
 
 import "./tailwind.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
@@ -35,6 +37,7 @@ const App = () => {
             </ProtectedRoutes>
           }
         />
+        
         <Route
           path="/property"
           element={
@@ -58,6 +61,23 @@ const App = () => {
           element={
             <ProtectedRoutes>
               <ProfileComponent />
+            </ProtectedRoutes>
+          }
+        />
+        <Route
+          path="/my-properties"
+          element={
+            <ProtectedRoutes>
+              <MyProperty />
+            </ProtectedRoutes>
+          }
+        />
+
+<Route
+          path="/edit-property/:id"
+          element={
+            <ProtectedRoutes>
+              <EditProperty  />
             </ProtectedRoutes>
           }
         />
