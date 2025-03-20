@@ -1,6 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { createProperty, getAllProperties, searchProperties} = require("../controllers/PropertyController");
+const { createProperty, 
+        getAllProperties, 
+        searchProperties,
+        getMyProperties,
+        editProperty,
+        getPropertyById,
+        deleteProperty} = require("../controllers/PropertyController");
 const authMiddleware = require("../middleware/authMiddleware");
 const multer = require("multer");
 const path = require("path");
@@ -31,5 +37,8 @@ const upload = multer({ storage, fileFilter }).array("images", 10);
 router.post("/create", authMiddleware, upload, createProperty);
 router.get("/all", getAllProperties); // Route to get all properties
 router.get("/search", searchProperties); // Search by location or tags
-
+router.get("/my-properties", authMiddleware, getMyProperties);
+router.delete("/:id", authMiddleware, deleteProperty);
+router.put("/:id", authMiddleware, upload, editProperty);
+router.get("/:id", getPropertyById);
 module.exports = router;

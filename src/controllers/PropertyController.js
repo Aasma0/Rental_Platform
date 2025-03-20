@@ -131,4 +131,105 @@ const searchProperties = async (req, res) => {
 
 
 
-module.exports = { createProperty, getAllProperties, searchProperties };
+// Fetch properties created by the logged-in user
+const getMyProperties = async (req, res) => {
+  try {
+    const userId = req.user.id; // Get user ID from the token
+
+    const properties = await Property.find({ owner: userId })
+      .populate("category owner tags", "name");
+
+    // Format image URLs before sending response
+    const propertiesWithImages = properties.map(property => ({
+      ...property.toObject(),
+      images: property.images.map(image => `${req.protocol}://${req.get('host')}/${image.split('/').pop()}`)
+    }));
+
+    res.status(200).json(propertiesWithImages);
+  } catch (error) {
+    console.error("Error fetching user's properties:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+// Delete a property
+const deleteProperty = async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id);
+
+    if (!property) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    if (property.owner.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    await Property.findByIdAndDelete(req.params.id);
+    res.json({ message: "Property deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Update property by ID (Only owner can update)
+const editProperty = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, location, price, category, tags } = req.body;
+
+    // Find the property
+    let property = await Property.findById(id);
+    if (!property) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    // Check if the logged-in user is the owner
+    if (property.owner.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Unauthorized to update this property" });
+    }
+
+    // Handle image updates (if new images are uploaded)
+    let updatedImages = property.images; // Keep existing images
+    if (req.files && req.files.length > 0) {
+      const imagePaths = req.files.map((file) => file.path); // Store file paths in DB
+      updatedImages = imagePaths; // Replace with new images
+    }
+
+    // Update the property
+    property = await Property.findByIdAndUpdate(
+      id,
+      { title, description, location, price, category, tags, images: updatedImages },
+      { new: true } // Return updated document
+    ).populate("category owner tags", "name");
+
+    // Send updated property
+    res.status(200).json({ message: "Property updated successfully", property });
+  } catch (error) {
+    console.error("Error updating property:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Get property by ID
+const getPropertyById = async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id);
+    if (!property) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+    res.status(200).json(property);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching property" });
+  }
+};
+
+module.exports = {
+  createProperty,
+  getAllProperties,
+  searchProperties,
+  getMyProperties,
+  editProperty,
+  deleteProperty,
+  getPropertyById, // Add this line to export the function
+};
