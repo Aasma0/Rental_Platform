@@ -11,8 +11,8 @@ const SliderSection = ({ onSearch }) => { // ✅ Accept onSearch as a prop
 
   return (
     <div
-      className="relative h-[650px] bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: 'url("image/landing.jpg")' }}
+      className="relative h-[500px] bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: 'url("image/dash.jpg")' }}
     >
       {/* Search Bar */}
       <div className="absolute top-[200px] left-1/2 transform -translate-x-1/2 flex items-center">

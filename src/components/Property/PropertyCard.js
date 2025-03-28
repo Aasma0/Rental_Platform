@@ -1,15 +1,11 @@
 import React, { useState } from "react";
-import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import BookingDatePicker from "../Booking/BookingDatePicker";
 
-const PropertyCard = ({ property, bookedDates, onBook }) => {
+const PropertyCard = ({ property }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-  const [bookingMessage, setBookingMessage] = useState("");
-  const [zoomedImageIndex, setZoomedImageIndex] = useState(null); // State to track zoomed image index
+  const [zoomedImageIndex, setZoomedImageIndex] = useState(null);
 
   const handleViewClick = () => {
     setIsOpen(true);
@@ -17,67 +13,16 @@ const PropertyCard = ({ property, bookedDates, onBook }) => {
 
   const handleClose = () => {
     setIsOpen(false);
-    setZoomedImageIndex(null); // Reset zoomed image when closing
+    setZoomedImageIndex(null);
   };
 
   const handleBookClick = () => {
     setIsBooking(true);
   };
 
-  const confirmBooking = async (startDate, endDate) => {
-    if (!startDate || !endDate) {
-      setBookingMessage("Please select both start and end dates.");
-      return;
-    }
-  
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setBookingMessage("You must be logged in to book a property.");
-        return;
-      }
-  
-      const response = await fetch(
-        `http://localhost:8000/api/booking/book/${property._id}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ startDate, endDate }),
-        }
-      );
-  
-      const data = await response.json();
-  
-      if (response.ok) {
-        setBookingMessage("Booking successful!");
-        onBook(startDate, endDate); // Trigger the booking logic in PropertyCard
-        setStartDate(null);
-        setEndDate(null);
-        setIsBooking(false);
-      } else {
-        setBookingMessage(data.message || "Booking failed.");
-      }
-    } catch (error) {
-      console.error("Error booking property:", error);
-      setBookingMessage("An error occurred. Please try again.");
-    }
-  };
-  
-
-  const isBooked = (date) => {
-    return bookedDates.some((bookedDate) => {
-      const bookedStart = new Date(bookedDate.start);
-      const bookedEnd = new Date(bookedDate.end);
-      return date >= bookedStart && date <= bookedEnd;
-    });
-  };
-
   // Handle image click to zoom in
   const handleImageClick = (index) => {
-    setZoomedImageIndex(index); // Set the clicked image index
+    setZoomedImageIndex(index);
   };
 
   // Handle image download
@@ -85,47 +30,49 @@ const PropertyCard = ({ property, bookedDates, onBook }) => {
     const image = property.images[zoomedImageIndex];
     const link = document.createElement("a");
     link.href = image;
-    link.download = image.split("/").pop(); // Automatically set download name from the image URL
+    link.download = image.split("/").pop();
     link.click();
   };
 
   // Handle back to modal from zoomed image
   const handleBackToModal = () => {
-    setZoomedImageIndex(null); // Reset zoomed image to go back to the modal
+    setZoomedImageIndex(null);
   };
 
   // Handle next and previous image navigation
   const handleNextImage = () => {
     setZoomedImageIndex(
       (prevIndex) => (prevIndex + 1) % property.images.length
-    ); // Go to the next image, loop around
+    );
   };
 
   const handlePrevImage = () => {
     setZoomedImageIndex(
       (prevIndex) =>
         (prevIndex - 1 + property.images.length) % property.images.length
-    ); // Go to the previous image, loop around
+    );
   };
 
   return (
     <div className="max-w-xs border border-gray-300 m-4">
+      {/* Property Card Header with Image */}
       <div className="relative">
         <img
           className="w-full h-48 object-cover cursor-pointer"
           src={property.images[0]}
           alt={property.title}
-          onClick={() => handleImageClick(0)} // Enable image zoom on click
+          onClick={() => handleImageClick(0)}
         />
         <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4">
           <h3 className="font-bold text-xl">{property.title}</h3>
           <p className="text-lg">${property.price}</p>
         </div>
       </div>
+
+      {/* Property Card Body */}
       <div className="px-6 py-4">
         <p className="text-gray-700 text-base">{property.description}</p>
         <p className="text-gray-700 text-base">{property.location}</p>
-        {bookingMessage && <p className="text-green-500">{bookingMessage}</p>}
         <div className="flex justify-between mt-4">
           <button
             onClick={handleViewClick}
@@ -142,6 +89,7 @@ const PropertyCard = ({ property, bookedDates, onBook }) => {
         </div>
       </div>
 
+      {/* Property Details Modal */}
       {isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-5 w-4/5 max-w-lg relative">
@@ -190,7 +138,7 @@ const PropertyCard = ({ property, bookedDates, onBook }) => {
                     className="w-full h-auto cursor-pointer object-cover"
                     src={img}
                     alt={`Property ${index}`}
-                    onClick={() => handleImageClick(index)} // Zoom in on image click
+                    onClick={() => handleImageClick(index)}
                   />
                 </div>
               ))}
@@ -198,16 +146,24 @@ const PropertyCard = ({ property, bookedDates, onBook }) => {
           </div>
         </div>
       )}
+
+      {/* Booking Modal */}
       {isBooking && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-5 w-4/5 max-w-md relative">
+          <div className="bg-white p-5 w-fit max-w-4xl relative">
             <span
               className="absolute top-2 right-2 cursor-pointer text-gray-500 text-lg font-bold"
               onClick={() => setIsBooking(false)}
             >
               &times;
             </span>
-            <BookingDatePicker bookedDates={bookedDates} onBook={confirmBooking} />
+
+            <h2 className="text-xl font-bold mb-4">Book: {property.title}</h2>
+
+            <div className="w-full md:w-1/2">
+              <h3 className="text-lg font-semibold mb-3">Select Dates</h3>
+              <BookingDatePicker property={property} />
+            </div>
           </div>
         </div>
       )}

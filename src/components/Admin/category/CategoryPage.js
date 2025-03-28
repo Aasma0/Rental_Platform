@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import PropertyCard from "../Property/PropertyCard"; // Import the same PropertyCard component
+import PropertyCard from "../../Property/PropertyCard"; // Import the same PropertyCard component
 
 const CategoryPage = () => {
   const { categoryId } = useParams();

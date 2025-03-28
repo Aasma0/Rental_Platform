@@ -17,7 +17,9 @@ const Sidebar = ({ isOpen, toggleSidebar, pageType }) => {
               <li className="mb-2">
                 <Link to="/my-properties" className="block py-2 hover:bg-gray-700">My Property</Link>
               </li>
-              
+              <li className="mb-2">
+                <Link to="/my-bookings" className="block py-2 hover:bg-gray-700">My Bookings</Link>
+              </li>
               <li>
                 <button onClick={() => {
                   localStorage.removeItem("token");
@@ -37,6 +39,9 @@ const Sidebar = ({ isOpen, toggleSidebar, pageType }) => {
               </li>
               <li className="mb-2">
                 <Link to="/profile" className="block py-2 hover:bg-gray-700">Profile</Link>
+              </li>
+              <li className="mb-2">
+                <Link to="/manage-bookings" className="block py-2 hover:bg-gray-700">Manage Bookings</Link>
               </li>
               <li>
                 <button onClick={() => {
