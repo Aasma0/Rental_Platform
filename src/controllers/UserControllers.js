@@ -113,21 +113,21 @@ const getUserProfile = async (req, res) => {
 // Update User Profile (without password)
 // --------------------------------------------
 const updateUserProfile = async (req, res) => {
-  const { name, email, phone, location, bio } = req.body;
+  const { name, phone, location, bio } = req.body; // Notice email is removed from destructuring
   try {
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
 
+    // Update allowed fields only; email remains locked.
     user.name = name || user.name;
-    user.email = email || user.email;
     user.phone = phone || user.phone;
     user.location = location || user.location;
     user.bio = bio || user.bio;
 
     if (req.file) {
-      user.profilePicture = req.file.path; // Save profile picture path
+      user.profilePicture = req.file.path; // Save profile picture path if provided
     }
 
     await user.save();
