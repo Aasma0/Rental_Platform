@@ -10,9 +10,9 @@ const NavbarSection = ({ toggleSidebar, pageType }) => {
     <nav className="flex justify-between items-center py-4 px-12 bg-white shadow-md">
       {/* Logo */}
       <div className="flex items-center space-x-4">
-        <Link to="/" className="text-lg font-bold text-gray-800 hover:text-blue-500 transition">
+        <h1 className="text-lg font-bold text-gray-800 hover:text-blue-500 transition">
           Hearth & Co.
-        </Link>
+        </h1>
       </div>
 
       {/* Center Navigation Links (Always Visible) */}
@@ -20,8 +20,11 @@ const NavbarSection = ({ toggleSidebar, pageType }) => {
         <Link to="/property" className="text-black hover:text-blue-500 transition">
           Rent
         </Link>
+        <Link to="/dash" className="text-black hover:text-blue-500 transition">
+          Home
+        </Link>
         <Link to="/rentals" className="text-black hover:text-blue-500 transition">
-          See Rentals
+        Explore Properties
         </Link>
       </div>
 

@@ -4,6 +4,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import NavbarSection from "../LandingPage/NavBar";
 import Sidebar from "../LandingPage/Sidebar";
+import { FaLock, FaEdit } from "react-icons/fa"; // Import lock and edit icons
+// import Modal from "react-modal";
 
 const ProfileComponent = () => {
   const [user, setUser] = useState({
@@ -12,13 +14,13 @@ const ProfileComponent = () => {
     phone: "",
     location: "",
     bio: "",
-    profilePicture: null, // For file upload
+    profilePicture: null,
   });
 
-  const [preview, setPreview] = useState(null); // For image preview
+  const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // 🔄 Toggle Password Visibility
+  const [modalIsOpen, setModalIsOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -26,7 +28,6 @@ const ProfileComponent = () => {
         const response = await axiosInstance.get("/user/profile");
         setUser(response.data.user);
 
-        // If user has a profile picture, show preview
         if (response.data.user.profilePicture) {
           setPreview(`http://localhost:8000/${response.data.user.profilePicture}`);
         }
@@ -37,20 +38,17 @@ const ProfileComponent = () => {
     fetchUserProfile();
   }, []);
 
-  // Handle text input change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setUser({ ...user, [name]: value });
   };
 
-  // Handle file selection
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setUser({ ...user, profilePicture: file });
-    setPreview(URL.createObjectURL(file)); // Show image preview
+    setPreview(URL.createObjectURL(file));
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -72,8 +70,8 @@ const ProfileComponent = () => {
           "Content-Type": "multipart/form-data",
         },
       });
-
       toast.success(response.data.msg);
+      setModalIsOpen(false);
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error(error.response?.data?.msg || "Something went wrong");
@@ -82,109 +80,51 @@ const ProfileComponent = () => {
     setLoading(false);
   };
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen((prev) => !prev);
-  };
-
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
-  };
-
   return (
     <div className="relative min-h-screen bg-gray-100">
-      <NavbarSection toggleSidebar={toggleSidebar} />
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+      <NavbarSection toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <Sidebar isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
-      <div className="flex justify-center items-center mt-10">
-        <div className="w-full max-w-lg bg-white shadow-lg rounded-lg p-6">
-          <h1 className="text-2xl font-bold text-center mb-6 text-gray-700">Edit Profile</h1>
-          <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-4">
-            <ToastContainer />
-
-            {/* Profile Picture Upload */}
-            <div className="flex flex-col items-center">
-              {preview && <img src={preview} alt="Profile Preview" className="w-24 h-24 rounded-full mb-2" />}
-              <input type="file" accept="image/*" onChange={handleFileChange} />
-            </div>
-
-            {/* Name */}
-            <div className="flex flex-col">
-              <label htmlFor="name" className="mb-1 text-gray-600">Name</label>
-              <input
-                type="text"
-                name="name"
-                id="name"
-                value={user.name}
-                onChange={handleInputChange}
-                className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400"
-                required
-              />
-            </div>
-
-            {/* Email */}
-            <div className="flex flex-col">
-              <label htmlFor="email" className="mb-1 text-gray-600">Email</label>
-              <input
-                type="email"
-                name="email"
-                id="email"
-                value={user.email}
-                onChange={handleInputChange}
-                className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400"
-                required
-              />
-            </div>
-
-            {/* Phone */}
-            <div className="flex flex-col">
-              <label htmlFor="phone" className="mb-1 text-gray-600">Phone</label>
-              <input
-                type="text"
-                name="phone"
-                id="phone"
-                value={user.phone}
-                onChange={handleInputChange}
-                className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400"
-                required
-              />
-            </div>
-
-            {/* Location */}
-            <div className="flex flex-col">
-              <label htmlFor="location" className="mb-1 text-gray-600">Location</label>
-              <input
-                type="text"
-                name="location"
-                id="location"
-                value={user.location}
-                onChange={handleInputChange}
-                className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400"
-                required
-              />
-            </div>
-
-            {/* Bio */}
-            <div className="flex flex-col">
-              <label htmlFor="bio" className="mb-1 text-gray-600">Bio</label>
-              <textarea
-                name="bio"
-                id="bio"
-                value={user.bio}
-                onChange={handleInputChange}
-                className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 rounded transition duration-300"
-              disabled={loading}
-            >
-              {loading ? "Updating..." : "Update Profile"}
-            </button>
-          </form>
+      <div className="flex flex-col items-center mt-10">
+        <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md text-center">
+          {preview && <img src={preview} alt="Profile" className="w-24 h-24 rounded-full mx-auto mb-3" />}
+          <h2 className="text-xl font-bold">{user.name}</h2>
+          <p className="text-gray-600">{user.bio}</p>
+          <div className="mt-4 text-left">
+            <p><strong>Email:</strong> {user.email}</p>
+            <p><strong>Phone:</strong> {user.phone}</p>
+            <p><strong>Location:</strong> {user.location}</p>
+          </div>
+          <button 
+            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded flex items-center mx-auto"
+            onClick={() => setModalIsOpen(true)}
+          >
+            <FaEdit className="mr-2" /> Edit Profile
+          </button>
         </div>
+      </div>
+
+      <div 
+        isOpen={modalIsOpen} 
+        onRequestClose={() => setModalIsOpen(false)} 
+        className="bg-white p-6 rounded shadow-lg w-full max-w-lg mx-auto mt-20"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+      >
+        <h2 className="text-2xl font-bold text-center mb-4">Edit Profile</h2>
+        <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-4">
+          <ToastContainer />
+
+          <div className="flex flex-col items-center">
+            {preview && <img src={preview} alt="Preview" className="w-20 h-20 rounded-full mb-2" />}
+            <input type="file" accept="image/*" onChange={handleFileChange} />
+          </div>
+
+          <input type="text" name="name" value={user.name} onChange={handleInputChange} className="p-2 border rounded w-full" placeholder="Name" required />
+          <textarea name="bio" value={user.bio} onChange={handleInputChange} className="p-2 border rounded w-full" placeholder="Bio" required />
+          <input type="text" name="phone" value={user.phone} onChange={handleInputChange} className="p-2 border rounded w-full" placeholder="Phone" required />
+          <input type="text" name="location" value={user.location} onChange={handleInputChange} className="p-2 border rounded w-full" placeholder="Location" required />
+          <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded" disabled={loading}>{loading ? "Updating..." : "Save Changes"}</button>
+        </form>
       </div>
     </div>
   );

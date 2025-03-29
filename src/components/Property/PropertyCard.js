@@ -65,7 +65,11 @@ const PropertyCard = ({ property }) => {
         />
         <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4">
           <h3 className="font-bold text-xl">{property.title}</h3>
-          <p className="text-lg">${property.price}</p>
+          <p className="text-lg">
+            {property.type === "Renting"
+              ? `$${property.price} ${property.pricingUnit.toLowerCase()}`
+              : `$${property.totalPrice}`}
+          </p>
         </div>
       </div>
 
@@ -92,7 +96,7 @@ const PropertyCard = ({ property }) => {
       {/* Property Details Modal */}
       {isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-5 w-4/5 max-w-lg relative">
+          <div className="bg-white p-5 w-4/5 max-w-lg relative overflow-y-auto max-h-[90vh]">
             <span
               className="absolute top-2 right-2 cursor-pointer text-gray-500 text-lg font-bold"
               onClick={handleClose}
@@ -100,17 +104,42 @@ const PropertyCard = ({ property }) => {
               &times;
             </span>
 
-            {/* Property Details */}
+            {/* All Property Details */}
             <h2 className="text-xl font-bold mb-2">{property.title}</h2>
-            <p className="text-gray-700">
-              <strong>Price:</strong> ${property.price}
+            <p className="text-gray-700 mb-1">
+              <strong>Type:</strong> {property.type}
             </p>
-            <p className="text-gray-700">
+            {property.type === "Renting" ? (
+              <p className="text-gray-700 mb-1">
+                <strong>Price:</strong> ${property.price} {property.pricingUnit.toLowerCase()}
+              </p>
+            ) : (
+              <p className="text-gray-700 mb-1">
+                <strong>Total Price:</strong> ${property.totalPrice}
+              </p>
+            )}
+            <p className="text-gray-700 mb-1">
               <strong>Location:</strong> {property.location}
             </p>
-            <p className="text-gray-700">
+            <p className="text-gray-700 mb-1">
               <strong>Category:</strong> {property.category?.name || "N/A"}
             </p>
+            <p className="text-gray-700 mb-1">
+              <strong>Description:</strong> {property.description}
+            </p>
+
+            {/* Owner Details */}
+            <div className="mt-3">
+              <p className="text-gray-700 mb-1">
+                <strong>Owner Name:</strong> {property.owner?.name || "N/A"}
+              </p>
+              <p className="text-gray-700 mb-1">
+                <strong>Owner Email:</strong> {property.owner?.email || "N/A"}
+              </p>
+              <p className="text-gray-700 mb-1">
+                <strong>Owner Number:</strong> {property.owner?.number || "N/A"}
+              </p>
+            </div>
 
             {/* Tags Section */}
             <p className="text-gray-700 font-semibold mt-3">Tags:</p>
@@ -159,7 +188,6 @@ const PropertyCard = ({ property }) => {
             </span>
 
             <h2 className="text-xl font-bold mb-4">Book: {property.title}</h2>
-
             <div className="w-full md:w-1/2">
               <h3 className="text-lg font-semibold mb-3">Select Dates</h3>
               <BookingDatePicker property={property} />
