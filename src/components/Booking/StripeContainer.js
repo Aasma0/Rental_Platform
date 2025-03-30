@@ -11,61 +11,127 @@ const StripeContainer = ({ amount, booking, onSuccess }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let isMounted = true;
     const controller = new AbortController();
-
+    
     const createPaymentIntent = async () => {
-        try {
-          console.log("🔄 Requesting payment intent...");
-      
-          const response = await fetch("http://localhost:8000/api/payment/create-payment-intent", {
+      try {
+        setLoading(true);
+        setError("");
+        
+        if (!booking?._id) {
+          throw new Error("Missing booking ID");
+        }
+        
+        if (typeof amount !== "number" || amount <= 0) {
+          throw new Error("Invalid payment amount");
+        }
+
+        // Ensure amount is properly formatted for Stripe (in cents)
+        const amountInCents = Math.round(amount * 100);
+        
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("Authentication required");
+        }
+
+        const response = await fetch(
+          "http://localhost:8000/api/payment/create-payment-intent",
+          {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${localStorage.getItem("token")}`
+              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
-              amount: Math.round(amount * 100),
-              bookingId: booking?._id
-            })
-          });
-      
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Server Error: ${errorText}`);
+              amount: amountInCents,
+              bookingId: booking._id,
+              currency: "usd",
+            }),
+            signal: controller.signal,
           }
-      
-          const data = await response.json();
-          console.log("✅ Payment Intent Received:", data);
-      
-          setClientSecret(data.clientSecret);
-        } catch (error) {
-          console.error("🚨 Error fetching payment intent:", error);
-          setError(error.message);
-        } finally {
-          setLoading(false);
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Payment setup failed");
         }
-      };
-      
 
-    createPaymentIntent();
-
-    return () => {
-      isMounted = false;
-      controller.abort();
+        const data = await response.json();
+        
+        if (!data.clientSecret) {
+          throw new Error("Invalid response from payment server");
+        }
+        
+        setClientSecret(data.clientSecret);
+      } catch (error) {
+        console.error("Payment Error:", error);
+        setError(error.message || "An error occurred setting up payment");
+      } finally {
+        setLoading(false);
+      }
     };
+
+    if (booking?._id && amount > 0) {
+      createPaymentIntent();
+    } else {
+      setLoading(false);
+      setError("Invalid booking or amount");
+    }
+
+    return () => controller.abort();
   }, [amount, booking]);
 
-  if (loading) return <div className="text-gray-500 p-2 text-sm">Initializing payment...</div>;
-  if (error) return <div className="text-red-500 p-2 text-sm">Error: {error}</div>;
-  if (!clientSecret) return <div className="text-red-500 p-2 text-sm">Missing payment credentials</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2 text-gray-600">Initializing secure payment...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 bg-red-50 rounded-lg border border-red-100">
+        <h3 className="text-red-600 font-medium">Payment Error</h3>
+        <p className="text-red-500 text-sm mt-1">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-3 text-sm text-blue-600 hover:text-blue-700"
+        >
+          Try Again →
+        </button>
+      </div>
+    );
+  }
+
+  if (!clientSecret) {
+    return (
+      <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-100">
+        <p className="text-yellow-700 text-sm">
+          Payment system is currently unavailable. Please try again later.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <Elements 
-      stripe={stripePromise} 
-      options={{ clientSecret }}
+    <Elements
+      stripe={stripePromise}
+      options={{
+        clientSecret,
+        appearance: {
+          theme: "stripe",
+          variables: {
+            colorPrimary: "#3b82f6",
+            colorBackground: "#ffffff",
+            colorText: "#374151",
+            fontFamily: "Inter, system-ui, sans-serif",
+          },
+        },
+      }}
     >
-      <CheckoutForm 
+      <CheckoutForm
         clientSecret={clientSecret}
         amount={amount}
         onSuccess={onSuccess}

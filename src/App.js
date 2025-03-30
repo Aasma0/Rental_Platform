@@ -13,6 +13,8 @@ import PropertyList from "./components/Property/PropertyList";
 import MyProperty from "./components/Property/MyProperty";
 import EditProperty from "./components/Property/EditProperty"; // Import the file
 import MyBookings from "./components/Property/MyBookings";
+import TransactionsPage from "./components/LandingPage/TransactionPage";
+import TransactionDetail from "./components/LandingPage/TransactionDetail";
 import "./tailwind.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import AdminDashboard from "./components/Admin/Dashboard/AdminDashboard";
@@ -37,6 +39,16 @@ const App = () => {
             </ProtectedRoutes>
           }
         />
+        <Route
+  path="/transactions"
+  element={
+    <ProtectedRoutes>
+      <TransactionsPage  />
+    </ProtectedRoutes>
+  }
+/>
+
+
         <Route
           path="/my-bookings"
           element={
