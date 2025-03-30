@@ -16,6 +16,7 @@ import MyBookings from "./components/Property/MyBookings";
 import TransactionsPage from "./components/LandingPage/TransactionPage";
 import TransactionDetail from "./components/LandingPage/TransactionDetail";
 import "./tailwind.css";
+import 'leaflet/dist/leaflet.css';
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import AdminDashboard from "./components/Admin/Dashboard/AdminDashboard";
 import ProfileComponent from "./components/Dashboard/ProfileComponent";

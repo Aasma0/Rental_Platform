@@ -18,6 +18,10 @@ const Sidebar = ({ isOpen, toggleSidebar, pageType }) => {
               <li className="mb-2">
                 <Link to="/my-properties" className="block py-2 px-3 hover:bg-gray-700 rounded" onClick={toggleSidebar}>My Property</Link>
               </li>
+              {/* Add Marketplace Link Here */}
+              <li className="mb-2">
+                <Link to="/marketplace" className="block py-2 px-3 hover:bg-gray-700 rounded" onClick={toggleSidebar}>Marketplace</Link>
+              </li>
               <li className="mb-2">
                 <Link to="/my-bookings" className="block py-2 px-3 hover:bg-gray-700 rounded" onClick={toggleSidebar}>My Bookings</Link>
               </li>
