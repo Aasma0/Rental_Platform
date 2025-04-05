@@ -46,7 +46,7 @@ const TransactionsPage = () => {
                     {new Date(transaction.createdAt).toLocaleDateString()}
                   </p>
                 </div>
-                <span className="font-bold text-gray-800">${transaction.totalPrice}</span>
+                <span className="font-bold text-gray-800">Rs {transaction.totalPrice}</span>
               </div>
               <div className="mt-2 text-sm">
                 <p>Status: <span className={`${transaction.paymentStatus === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>

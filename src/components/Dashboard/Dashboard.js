@@ -50,6 +50,8 @@ const Dashboard = () => {
           <CategorySection key={category._id} category={category} />
         ))}
       </div>
+
+      
     </div>
   );
 };

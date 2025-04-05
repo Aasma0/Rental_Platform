@@ -21,7 +21,11 @@ const BookingDatePicker = ({ property }) => {
   useEffect(() => {
     if (startDate && endDate && property?.price) {
       const days = differenceInDays(endDate, startDate) + 1;
-      const { totalPrice, breakdown } = calculateFairPrice(days, property.price, property.pricingUnit);
+      const { totalPrice, breakdown } = calculateFairPrice(
+        days,
+        property.price,
+        property.pricingUnit
+      );
       setTotalPrice(totalPrice);
       setPricingBreakdown(breakdown);
     }
@@ -35,65 +39,65 @@ const BookingDatePicker = ({ property }) => {
       partialDays: 0,
       fullPeriodsPrice: 0,
       partialDaysPrice: 0,
-      discount: 0
+      discount: 0,
     };
-    
+
     switch (pricingUnit) {
       case "Per Month":
         // A month is counted as 30 days
         const fullMonths = Math.floor(days / 30);
         const partialDays = days % 30;
-        
+
         // Calculate for full months
         breakdown.fullPeriods = fullMonths;
         breakdown.fullPeriodsPrice = fullMonths * basePrice;
-        
+
         // Calculate for partial days with 3% discount if less than a month
         if (partialDays > 0) {
           const dailyRate = basePrice / 30;
           const partialPrice = dailyRate * partialDays;
           breakdown.partialDays = partialDays;
-          
+
           // Apply 3% discount for partial period
           const discount = partialPrice * 0.03;
           breakdown.discount = discount;
           breakdown.partialDaysPrice = partialPrice - discount;
         }
-        
+
         totalPrice = breakdown.fullPeriodsPrice + breakdown.partialDaysPrice;
         break;
-        
+
       case "Per Week":
         // A week is counted as 7 days
         const fullWeeks = Math.floor(days / 7);
         const remainingDays = days % 7;
-        
+
         // Calculate for full weeks
         breakdown.fullPeriods = fullWeeks;
         breakdown.fullPeriodsPrice = fullWeeks * basePrice;
-        
+
         // Calculate for partial days with 3% discount if less than a week
         if (remainingDays > 0) {
           const dailyRate = basePrice / 7;
           const partialPrice = dailyRate * remainingDays;
           breakdown.partialDays = remainingDays;
-          
+
           // Apply 3% discount for partial period
           const discount = partialPrice * 0.03;
           breakdown.discount = discount;
           breakdown.partialDaysPrice = partialPrice - discount;
         }
-        
+
         totalPrice = breakdown.fullPeriodsPrice + breakdown.partialDaysPrice;
         break;
-        
+
       default: // Per Day
         totalPrice = days * basePrice;
         breakdown.fullPeriods = days;
         breakdown.fullPeriodsPrice = totalPrice;
         break;
     }
-    
+
     return { totalPrice: parseFloat(totalPrice.toFixed(2)), breakdown };
   };
 
@@ -117,15 +121,16 @@ const BookingDatePicker = ({ property }) => {
     };
 
     // Calculate paidAmount correctly based on payment type
-    const paidAmount = method === "pay_later" 
-      ? 0 
-      : method === "partial" 
-        ? totalPrice * 0.5 
+    const paidAmount =
+      method === "pay_later"
+        ? 0
+        : method === "partial"
+        ? totalPrice * 0.5
         : totalPrice;
-    
+
     // Ensure remainingBalance is never negative
     const remainingBalance = Math.max(0, totalPrice - paidAmount);
-          
+
     try {
       const response = await fetch(
         `http://localhost:8000/api/booking/book/${property._id}`,
@@ -141,7 +146,7 @@ const BookingDatePicker = ({ property }) => {
             paymentType: paymentTypeMap[method],
             paidAmount: paidAmount,
             depositAmount: method === "partial" ? totalPrice * 0.5 : 0,
-            remainingBalance: remainingBalance
+            remainingBalance: remainingBalance,
           }),
         }
       );
@@ -163,7 +168,7 @@ const BookingDatePicker = ({ property }) => {
       setPaymentType(method);
       setIsLoading(true);
       setBookingMessage("");
-      
+
       // Create booking record first
       const { booking } = await createBookingRecord(method);
       setBookingDetails(booking);
@@ -202,7 +207,7 @@ const BookingDatePicker = ({ property }) => {
           },
           body: JSON.stringify({
             paymentIntentId,
-            status: status
+            status: status,
           }),
         }
       );
@@ -224,42 +229,48 @@ const BookingDatePicker = ({ property }) => {
   // Display pricing breakdown info
   const renderPricingInfo = () => {
     if (!pricingBreakdown || !property) return null;
-    
+
     const days = differenceInDays(endDate, startDate) + 1;
     const pricingUnit = property.pricingUnit || "Per Day";
-    
+
     return (
       <div className="mb-4 p-3 bg-gray-50 rounded-md">
         <p className="text-sm font-medium mb-1">
-          {days} {days === 1 ? 'night' : 'nights'} · ${totalPrice.toFixed(2)}
+          {days} {days === 1 ? "night" : "nights"} · Rs {totalPrice.toFixed(2)}
         </p>
-        
+
         {pricingUnit !== "Per Day" && (
           <div className="text-xs text-gray-600 mt-1">
             {pricingBreakdown.fullPeriods > 0 && (
               <p>
-                {pricingBreakdown.fullPeriods} {pricingUnit === "Per Month" ? 
-                  (pricingBreakdown.fullPeriods === 1 ? 'month' : 'months') : 
-                  (pricingBreakdown.fullPeriods === 1 ? 'week' : 'weeks')}: 
-                ${pricingBreakdown.fullPeriodsPrice.toFixed(2)}
+                {pricingBreakdown.fullPeriods}{" "}
+                {pricingUnit === "Per Month"
+                  ? pricingBreakdown.fullPeriods === 1
+                    ? "month"
+                    : "months"
+                  : pricingBreakdown.fullPeriods === 1
+                  ? "week"
+                  : "weeks"}
+                : Rs {pricingBreakdown.fullPeriodsPrice.toFixed(2)}
               </p>
             )}
-            
+
             {pricingBreakdown.partialDays > 0 && (
               <p>
-                {pricingBreakdown.partialDays} {pricingBreakdown.partialDays === 1 ? 'day' : 'days'}: 
-                ${pricingBreakdown.partialDaysPrice.toFixed(2)}
-                {pricingBreakdown.discount > 0 && 
+                {pricingBreakdown.partialDays}{" "}
+                {pricingBreakdown.partialDays === 1 ? "day" : "days"}: Rs{" "}
+                {pricingBreakdown.partialDaysPrice.toFixed(2)}
+                {pricingBreakdown.discount > 0 && (
                   <span className="text-green-600"> (3% discount applied)</span>
-                }
+                )}
               </p>
             )}
           </div>
         )}
-        
+
         {paymentType === "partial" && (
           <p className="text-xs text-gray-600 mt-1">
-            Deposit required: ${(totalPrice * 0.5).toFixed(2)}
+            Deposit required: Rs{(totalPrice * 0.5).toFixed(2)}
           </p>
         )}
       </div>
@@ -340,7 +351,9 @@ const BookingDatePicker = ({ property }) => {
                     >
                       <option value="">Choose option</option>
                       <option value="card">Full Payment (Credit/Debit)</option>
-                      <option value="partial">Partial Payment (50% Deposit)</option>
+                      <option value="partial">
+                        Partial Payment (50% Deposit)
+                      </option>
                       <option value="pay_later">Pay at Check-in</option>
                     </select>
                   </div>
@@ -355,13 +368,15 @@ const BookingDatePicker = ({ property }) => {
                 {showCardDetails && bookingDetails && (
                   <div className="mt-4">
                     <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      {paymentType === "partial" 
-                        ? `Deposit Payment: $${(totalPrice * 0.5).toFixed(2)}` 
+                      {paymentType === "partial"
+                        ? `Deposit Payment: $${(totalPrice * 0.5).toFixed(2)}`
                         : `Full Payment: $${totalPrice.toFixed(2)}`}
                     </h4>
                     <StripeContainer
                       amount={
-                        paymentType === "partial" ? totalPrice * 0.5 : totalPrice
+                        paymentType === "partial"
+                          ? totalPrice * 0.5
+                          : totalPrice
                       }
                       booking={bookingDetails}
                       onSuccess={handlePaymentSuccess}
@@ -381,7 +396,8 @@ const BookingDatePicker = ({ property }) => {
             {bookingMessage && !isLoading && !isBookingConfirmed && (
               <div
                 className={`mt-4 p-2 rounded-md text-sm ${
-                  bookingMessage.includes("success") || bookingMessage.includes("confirmed")
+                  bookingMessage.includes("success") ||
+                  bookingMessage.includes("confirmed")
                     ? "bg-green-50 text-green-600"
                     : "bg-red-50 text-red-600"
                 }`}

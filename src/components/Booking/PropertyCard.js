@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "react-calendar/dist/Calendar.css";
-import BookingDatePicker from "../Booking/BookingDatePicker";
+import BookingDatePicker from "./BookingDatePicker";
 
 const PropertyCard = ({ property }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -66,17 +66,20 @@ const PropertyCard = ({ property }) => {
         <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4">
           <h3 className="font-bold text-xl">{property.title}</h3>
           <p className="text-lg">
-            {property.type === "Renting"
-              ? `$${property.price} ${property.pricingUnit.toLowerCase()}`
-              : `$${property.totalPrice}`}
-          </p>
+  {property.type === "Renting"
+    ? `Rs. ${property.price} ${property.pricingUnit.toLowerCase()}`
+    : `Rs. ${property.totalPrice}`}
+</p>
+
+
+
+
         </div>
       </div>
 
       {/* Property Card Body */}
       <div className="px-6 py-4">
         <p className="text-gray-700 text-base">{property.description}</p>
-        <p className="text-gray-700 text-base">{property.location}</p>
         <div className="flex justify-between mt-4">
           <button
             onClick={handleViewClick}
@@ -111,12 +114,14 @@ const PropertyCard = ({ property }) => {
             </p>
             {property.type === "Renting" ? (
               <p className="text-gray-700 mb-1">
-                <strong>Price:</strong> ${property.price} {property.pricingUnit.toLowerCase()}
-              </p>
+  <strong>Price:</strong> Rs. {property.price} {property.pricingUnit.toLowerCase()}
+</p>
+
             ) : (
               <p className="text-gray-700 mb-1">
-                <strong>Total Price:</strong> ${property.totalPrice}
-              </p>
+  <strong>Total Price:</strong> Rs. {property.totalPrice}
+</p>
+
             )}
             <p className="text-gray-700 mb-1">
               <strong>Location:</strong> {property.location}

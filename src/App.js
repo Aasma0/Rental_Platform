@@ -7,20 +7,22 @@ import Dashboard from "./components/Dashboard/Dashboard";
 import RegistrationComponent from "./components/registration";
 import CategoryComponent from "./components/Admin/category/CategoryComponent";
 import ProtectedRoutes from "./protectedRoutes/protectedRoutes"; // Import ProtectedRoutes
-import PropertyCreation from "./components/Property/PropertyCreation";
+// import PropertyCreation from "./components/Property/PropertyCreation";
+import PropertyCreation from "./components/PropertyCreation/index";
 import CategoryPage from "./components/Admin/category/CategoryPage"; // Import CategoryPage
 import PropertyList from "./components/Property/PropertyList";
 import MyProperty from "./components/Property/MyProperty";
 import EditProperty from "./components/Property/EditProperty"; // Import the file
-import MyBookings from "./components/Property/MyBookings";
+import MyBookings from "./components/Booking/MyBookings";
 import TransactionsPage from "./components/LandingPage/TransactionPage";
-import TransactionDetail from "./components/LandingPage/TransactionDetail";
+// import TransactionDetail from "./components/LandingPage/TransactionDetail";
 import "./tailwind.css";
-import 'leaflet/dist/leaflet.css';
+import "leaflet/dist/leaflet.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import AdminDashboard from "./components/Admin/Dashboard/AdminDashboard";
 import ProfileComponent from "./components/Dashboard/ProfileComponent";
-
+import Marketplace from "./components/Dashboard/MarketplaceComponent";
+import RoommateFinder from "./components/Roommate/RoommateFinder"; // Import RoommateFinder
 const App = () => {
   const authState = useSelector((state) => state.auth); // Get auth state from Redux
 
@@ -41,15 +43,21 @@ const App = () => {
           }
         />
         <Route
-  path="/transactions"
-  element={
-    <ProtectedRoutes>
-      <TransactionsPage  />
-    </ProtectedRoutes>
-  }
-/>
-
-
+          path="/marketplace"
+          element={
+            <ProtectedRoutes>
+              <Marketplace />
+            </ProtectedRoutes>
+          }
+        />
+        <Route
+          path="/transactions"
+          element={
+            <ProtectedRoutes>
+              <TransactionsPage />
+            </ProtectedRoutes>
+          }
+        />
         <Route
           path="/my-bookings"
           element={
@@ -58,6 +66,16 @@ const App = () => {
             </ProtectedRoutes>
           }
         />
+
+<Route
+          path="/roommate-finder"
+          element={
+            <ProtectedRoutes>
+              <RoommateFinder />
+            </ProtectedRoutes>
+          }
+        />
+      
         <Route
           path="/property"
           element={
@@ -92,12 +110,11 @@ const App = () => {
             </ProtectedRoutes>
           }
         />
-
-<Route
+        <Route
           path="/edit-property/:id"
           element={
             <ProtectedRoutes>
-              <EditProperty  />
+              <EditProperty />
             </ProtectedRoutes>
           }
         />

@@ -41,11 +41,12 @@ const NavbarSection = ({ toggleSidebar, pageType }) => {
           </>
         )}
 
-        {(pageType === "dashboard" || pageType === "admin") && (
-          <button onClick={toggleSidebar} className="text-lg focus:outline-none hover:text-blue-500 transition">
-            <FaCog size={24} />
-          </button>
-        )}
+        {(pageType === "dashboard") && (
+  <button onClick={toggleSidebar} className="text-lg focus:outline-none hover:text-blue-500 transition">
+    <FaCog size={24} />
+  </button>
+)}
+
       </div>
     </nav>
   );
