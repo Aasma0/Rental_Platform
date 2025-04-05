@@ -17,7 +17,28 @@ const PriceSection = ({ propertyType, price, onPriceChange, pricingUnit, onPrici
           required
         />
       </div>
-      {propertyType === "Renting" || propertyType === "Sharing" && (
+      {propertyType === "Sharing" && (
+        <div>
+          <label className="block text-gray-700 font-medium mb-2">Billing Period</label>
+          <div className="grid grid-cols-3 gap-2">
+            {["Per Day", "Per Week", "Per Month"].map((unit) => (
+              <button
+                key={unit}
+                type="button"
+                onClick={() => onPricingUnitChange(unit)}
+                className={`p-2 rounded-lg border ${
+                  pricingUnit === unit
+                    ? "border-blue-500 bg-blue-50 text-blue-700"
+                    : "border-gray-300 hover:border-blue-300"
+                }`}
+              >
+                {unit}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {propertyType === "Renting"  && (
         <div>
           <label className="block text-gray-700 font-medium mb-2">Billing Period</label>
           <div className="grid grid-cols-3 gap-2">

@@ -161,6 +161,7 @@ const PropertyCreation = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError('');
   
     // Validation checks
     const errors = [];
@@ -178,6 +179,14 @@ const PropertyCreation = () => {
       return;
     }
   
+    // Ensure survey data is properly structured
+    const surveyData = surveyResponses ? {
+      sleepSchedule: surveyResponses.sleepSchedule,
+      smoking: surveyResponses.smoking,
+      noisePreference: parseInt(surveyResponses.noisePreference),
+      neatness: parseInt(surveyResponses.neatness)
+    } : null;
+  
     const formData = new FormData();
     // Common fields
     formData.append("title", title);
@@ -192,18 +201,16 @@ const PropertyCreation = () => {
     formData.append("tags", JSON.stringify(selectedTags));
     formData.append("type", propertyType);
   
+    // Add survey data if exists
+    if (surveyData) {
+      formData.append("survey", JSON.stringify(surveyData));
+    }
+  
     // Type-specific fields
     if (propertyType === "Selling") {
       formData.append("totalPrice", price);
-      // Don't append pricingUnit for selling properties
     } else {
-      // For Renting and Sharing
-      formData.append("pricingUnit", pricingUnit || "Per Day"); // Provide default to avoid empty value
-    }
-  
-    // Survey data
-    if (surveyResponses) {
-      formData.append("survey", JSON.stringify(surveyResponses));
+      formData.append("pricingUnit", pricingUnit || "Per Day");
     }
   
     // Images

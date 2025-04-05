@@ -9,60 +9,48 @@ const RoommateFinder = () => {
   const [error, setError] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
-  const [propertySurveys, setPropertySurveys] = useState({});
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchSharedProperties = async () => {
       try {
         setLoading(true);
         setError("");
         const token = localStorage.getItem("token");
 
         if (!token) {
-          setError("Please login to view roommate listings");
+          setError("Please login to view shared accommodations");
           setLoading(false);
           return;
         }
 
-        // Fetch shared properties
-        const propertiesRes = await axios.get(
-          "http://localhost:8000/api/property/all",
-          {
-            params: { type: "Sharing" },
-            headers: { Authorization: `Bearer ${token}` },
-          }
+        // Frontend API call should be:
+const response = await axios.get("http://localhost:8000/api/property/all", {
+  params: {
+    type: "Sharing",
+    populate: "owner,survey"
+  },
+  headers: { Authorization: `Bearer ${token}` }
+});
+
+        // Double filter to ensure only Sharing properties
+        const sharedProperties = response.data.filter(
+          property => property.type === "Sharing"
         );
-
-        // Fetch surveys for these properties
-        const surveyRes = await axios.get("http://localhost:8000/api/surveys", {
-          params: {
-            propertyIds: propertiesRes.data.map(p => p._id).join(',')
-          },
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        // Create survey map
-        const surveysMap = surveyRes.data.reduce((acc, survey) => {
-          acc[survey.property] = survey;
-          return acc;
-        }, {});
-
-        setPropertySurveys(surveysMap);
-        setListings(propertiesRes.data.filter(p => p.type === "Sharing"));
+        setListings(sharedProperties);
 
       } catch (err) {
         if (err.response?.status === 401) {
           localStorage.removeItem("token");
           window.location.href = "/login";
         } else {
-          setError("Failed to load data. Please try again later.");
+          setError("Failed to load shared properties");
         }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchSharedProperties();
   }, []);
 
   const formatPrice = (price) => {
@@ -75,10 +63,11 @@ const RoommateFinder = () => {
 
   const PropertyModal = ({ property, onClose }) => {
     const [selectedImage, setSelectedImage] = useState(0);
-    const survey = propertySurveys[property._id];
+    const owner = property.owner || {};
+    const survey = property.survey || {};
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
           <div className="p-6">
             <div className="flex justify-between items-start mb-4">
@@ -92,6 +81,7 @@ const RoommateFinder = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Image Section */}
               <div className="space-y-4">
                 <div className="relative bg-gray-100 rounded-lg">
                   {property.images?.length > 0 ? (
@@ -137,16 +127,19 @@ const RoommateFinder = () => {
                 )}
               </div>
 
+              {/* Details Section */}
               <div className="space-y-4">
+                {/* Pricing */}
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <p className="text-xl font-bold text-blue-600">
                     {formatPrice(property.price)}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Shared Accommodation
+                    <span className="text-sm font-normal text-gray-600 ml-2">
+                      / {property.pricingUnit}
+                    </span>
                   </p>
                 </div>
 
+                {/* Location */}
                 <div className="flex items-center text-gray-600">
                   <svg
                     className="w-5 h-5 mr-2"
@@ -170,30 +163,55 @@ const RoommateFinder = () => {
                   <span>{property.location}</span>
                 </div>
 
-                {survey && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-semibold mb-3 text-lg">Roommate Preferences</h3>
-                    <div className="space-y-2">
-                      <div>
-                        <span className="font-medium">Sleep Schedule:</span>{" "}
-                        <span className="capitalize">{survey.sleepSchedule}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Smoking:</span>{" "}
-                        <span className="capitalize">{survey.smoking}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Noise Preference:</span>{" "}
-                        {survey.noisePreference}/5
-                      </div>
-                      <div>
-                        <span className="font-medium">Neatness:</span>{" "}
-                        {survey.neatness}/5
-                      </div>
+                {/* Owner Details */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="font-semibold mb-3 text-lg">Owner Information</h3>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="font-medium">Name:</span> {owner.name}
                     </div>
+                    <div>
+                      <span className="font-medium">Email:</span> {owner.email}
+                    </div>
+                    {owner.phone && (
+                      <div>
+                        <span className="font-medium">Phone:</span> {owner.phone}
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
 
+                // Inside PropertyModal component
+{/* Survey Answers */}
+{survey && (
+  <div className="bg-gray-50 p-4 rounded-lg">
+    <h3 className="font-semibold mb-3 text-lg">Roommate Preferences</h3>
+    <div className="space-y-2">
+      <div>
+        <span className="font-medium">Sleep Schedule:</span>{" "}
+        <span className="capitalize">
+          {survey.sleepSchedule || "Not specified"}
+        </span>
+      </div>
+      <div>
+        <span className="font-medium">Smoking:</span>{" "}
+        <span className="capitalize">
+          {survey.smoking || "Not specified"}
+        </span>
+      </div>
+      <div>
+        <span className="font-medium">Noise Preference:</span>{" "}
+        {survey.noisePreference ? `${survey.noisePreference}/5` : "Not specified"}
+      </div>
+      <div>
+        <span className="font-medium">Neatness:</span>{" "}
+        {survey.neatness ? `${survey.neatness}/5` : "Not specified"}
+      </div>
+    </div>
+  </div>
+)}
+
+                {/* Description */}
                 {property.description && (
                   <div className="text-gray-600">
                     <p className="font-semibold">Description:</p>
@@ -224,16 +242,13 @@ const RoommateFinder = () => {
       <Sidebar
         isOpen={isSidebarOpen}
         toggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
-        pageType="dashboard"
       />
 
       <div className="pt-20 pb-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Room Sharing Listings
-            </h1>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">
+            Shared Accommodations
+          </h1>
 
           {error && (
             <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">
@@ -284,19 +299,19 @@ const RoommateFinder = () => {
             ))}
           </div>
 
+          {!loading && listings.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-600 text-lg">
+                No shared accommodations available currently
+              </p>
+            </div>
+          )}
+
           {selectedProperty && (
             <PropertyModal
               property={selectedProperty}
               onClose={() => setSelectedProperty(null)}
             />
-          )}
-
-          {!loading && listings.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-600 text-lg">
-                No shared accommodations available
-              </p>
-            </div>
           )}
         </div>
       </div>
