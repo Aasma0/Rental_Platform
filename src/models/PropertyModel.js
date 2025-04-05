@@ -46,6 +46,12 @@ const PropertySchema = new mongoose.Schema(
       enum: ["Renting", "Selling", "Sharing"], // Only allow these values
       required: true,
     },
+    survey: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Survey',
+    required: function() { return this.type === 'Sharing'; }
+
+  }
   },
   { timestamps: true }
 );
