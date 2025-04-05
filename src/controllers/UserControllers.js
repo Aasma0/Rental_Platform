@@ -109,9 +109,7 @@ const getUserProfile = async (req, res) => {
   }
 };
 
-// --------------------------------------------
 // Update User Profile (without password)
-// --------------------------------------------
 const updateUserProfile = async (req, res) => {
   const { name, phone, location, bio } = req.body; // Notice email is removed from destructuring
   try {
@@ -164,6 +162,36 @@ const updateUserPassword = async (req, res) => {
     res.status(500).json({ msg: "Server error" });
   }
 };
+const getUserStats = async (req, res) => {
+  try {
+    const userStats = await User.aggregate([
+      {
+        $group: {
+          _id: {
+            year: { $year: { date: "$createdAt", timezone: "UTC" } },
+            month: { $month: { date: "$createdAt", timezone: "UTC" } }
+          },
+          count: { $sum: 1 },
+        }
+      },
+      {
+        $project: {
+          month: "$_id.month",
+          year: "$_id.year",
+          count: 1,
+          _id: 0
+        }
+      },
+      { $sort: { year: 1, month: 1 } }
+    ]);
+
+    res.json(userStats);
+  } catch (error) {
+    console.error("Error fetching user stats:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 module.exports = {
   registerUser,
@@ -171,5 +199,6 @@ module.exports = {
   getUserProfile,
   updateUserProfile,
   updateUserPassword,
+  getUserStats,
   upload,
 };

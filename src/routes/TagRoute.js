@@ -35,4 +35,22 @@ router.post("/create", isAdmin, async (req, res) => {
   }
 });
 
+// DELETE a tag by ID (admin only)
+router.delete("/delete/:id", isAdmin, async (req, res) => {
+  try {
+    const tagId = req.params.id;
+    const deletedTag = await Tag.findByIdAndDelete(tagId);
+
+    if (!deletedTag) {
+      return res.status(404).json({ message: "Tag not found" });
+    }
+
+    res.status(200).json({ message: "Tag deleted successfully" });
+  } catch (error) {
+    console.error("Delete error:", error);
+    res.status(500).json({ message: "Error deleting tag", error });
+  }
+});
+
+
 module.exports = router;

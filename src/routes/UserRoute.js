@@ -5,7 +5,8 @@ const {
   getUserProfile,
   updateUserProfile,
   updateUserPassword,
-  upload,  // Ensure upload middleware is imported
+  getUserStats, 
+  upload,  
 } = require("../controllers/UserControllers");
 const authMiddleware = require("../middleware/authMiddleware");
 
@@ -19,5 +20,6 @@ router.post("/login", loginUser);
 router.get("/profile", authMiddleware, getUserProfile);
 router.patch("/profile", authMiddleware, upload.single("profilePicture"), updateUserProfile);
 router.patch("/profile/password", authMiddleware, updateUserPassword);
+router.get("/stats", getUserStats); // Define route
 
 module.exports = router;

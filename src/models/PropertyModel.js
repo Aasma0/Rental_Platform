@@ -9,7 +9,20 @@ const PropertySchema = new mongoose.Schema(
     totalPrice: { type: Number }, // Total price for selling properties
     pricingUnit: {
       type: String,
-      enum: ["Per Day", "Per Week", "Per Month"], // Restrict to these values (only for renting)
+      enum: ["Per Day", "Per Week", "Per Month"],
+      required: function () {
+        // Only required for Renting and Sharing, not for Selling
+        return this.type === "Renting" || this.type === "Sharing";
+      },
+      // Validate that pricingUnit is undefined/null when type is Selling
+      validate: {
+        validator: function(v) {
+          // If type is Selling, pricingUnit should be undefined/null
+          // If type is not Selling, pricingUnit should be defined
+          return (this.type === "Selling") ? !v : !!v;
+        },
+        message: props => `${props.value} is not valid for the selected property type`
+      }
     },
     images: [{ type: String }],
     category: {
@@ -30,7 +43,7 @@ const PropertySchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["Renting", "Selling"], // Only allow these values
+      enum: ["Renting", "Selling", "Sharing"], // Only allow these values
       required: true,
     },
   },

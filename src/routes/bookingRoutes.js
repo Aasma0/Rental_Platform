@@ -10,6 +10,7 @@ const {
   getMyBookings,
   getAllProperties,
   getMyTransactions,
+  getActiveBookingsCount,
   getTransactionById,
   getAllTransactions
 } = require('../controllers/bookingController');
@@ -45,4 +46,5 @@ router.get("/property/:propertyId", async (req, res) => {
   }
 });
 
+router.get('/active-bookings-count', getActiveBookingsCount);
 module.exports = router;

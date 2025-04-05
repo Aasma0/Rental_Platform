@@ -260,3 +260,16 @@ exports.getMyTransactions = async (req, res) => {
     res.status(500).json({ error: "Error fetching transactions", details: error.message });
   }
 };
+
+// Add this new controller function
+exports.getActiveBookingsCount = async (req, res) => {
+  try {
+    const count = await Booking.countDocuments({ 
+      paymentStatus: { $in: ["paid", "partially_paid"] },
+      endDate: { $gte: new Date() }
+    });
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};

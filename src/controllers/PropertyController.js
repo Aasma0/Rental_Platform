@@ -2,6 +2,7 @@ const Property = require("../models/PropertyModel");
 const Tag = require("../models/TagModel"); // Import the Tag model
 
 // Create a new property
+// Create a new property
 const createProperty = async (req, res) => {
   try {
     let { title, description, location, price, category, tags, type, pricingUnit, totalPrice } = req.body;
@@ -10,10 +11,13 @@ const createProperty = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // For renting, pricingUnit is required; for selling, totalPrice is required
-    if (type === "Renting" && !["Per Day", "Per Week", "Per Month"].includes(pricingUnit)) {
-      return res.status(400).json({ message: "Invalid pricing unit. Must be 'Per Day', 'Per Week', or 'Per Month' for renting" });
+    // Validate pricing fields based on property type
+    if ((type === "Renting" || type === "Sharing") && !["Per Day", "Per Week", "Per Month"].includes(pricingUnit)) {
+      return res.status(400).json({ 
+        message: `Invalid pricing unit. Must be 'Per Day', 'Per Week', or 'Per Month' for ${type.toLowerCase()} properties` 
+      });
     }
+    
     if (type === "Selling" && !totalPrice) {
       return res.status(400).json({ message: "Total price is required for selling properties" });
     }
@@ -28,15 +32,15 @@ const createProperty = async (req, res) => {
       }
     }
 
-    // Create the property
+    // Create the property with the correct fields
     const newProperty = new Property({
       title,
       description,
       location,
       price,
-      totalPrice, // Only used for selling properties
-      pricingUnit: type === "Renting" ? pricingUnit : undefined,
-      images: req.files.map((file) => file.path),
+      totalPrice: type === "Selling" ? totalPrice || price : undefined,
+      pricingUnit: (type === "Renting" || type === "Sharing") ? pricingUnit : undefined,
+      images: req.files && req.files.length > 0 ? req.files.map((file) => file.path) : [],
       category,
       tags: parsedTags,
       owner: req.user.id,
@@ -209,6 +213,71 @@ const getPropertyById = async (req, res) => {
   }
 };
 
+// Get count of properties per category
+const getPropertyCountByCategory = async (req, res) => {
+  try {
+    console.log("Executing getPropertyCountByCategory...");
+    
+    const result = await Property.aggregate([
+      {
+        $group: {
+          _id: "$category",
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $lookup: {
+          from: "categories", // Make sure this matches your actual collection name in MongoDB
+          localField: "_id",
+          foreignField: "_id",
+          as: "categoryInfo"
+        }
+      },
+      {
+        $unwind: {
+          path: "$categoryInfo",
+          preserveNullAndEmptyArrays: true // Keep categories even if they don't have matching info
+        }
+      },
+      {
+        $project: {
+          categoryName: { $ifNull: ["$categoryInfo.name", "Uncategorized"] },
+          count: 1,
+          _id: 0
+        }
+      }
+    ]);
+
+    console.log("Category count result:", result);
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error getting category property count:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+const getTotalProperties = async (req, res) => {
+  try {
+    const count = await Property.countDocuments();
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+
+const getSellingPropertiesCount = async (req, res) => {
+  try {
+    const count = await Property.countDocuments({ 
+      type: "Selling",
+      status: "active"
+    });
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 module.exports = {
   createProperty,
   getAllProperties,
@@ -217,4 +286,7 @@ module.exports = {
   editProperty,
   deleteProperty,
   getPropertyById,
-};
+  getPropertyCountByCategory,
+  getSellingPropertiesCount,
+  getTotalProperties,
+  };

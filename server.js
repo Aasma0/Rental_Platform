@@ -8,9 +8,11 @@ const propertyRoutes = require("./src/routes/PropertyRoute");
 const categoryRoutes = require("./src/routes/categoryRoute");
 const adminRoutes = require("./src/routes/adminRoutes");
 const bookingRoutes = require("./src/routes/bookingRoutes");
+const surveyRoutes = require('./src/routes/surveyRoutes'); // Import survey routes
 const userRoutes = require("./src/routes/UserRoute"); // Correct import
 const paymentRoutes = require("./src/routes/paymentRoutes"); // <-- Add this line
 const path = require("path");
+
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -34,6 +36,7 @@ app.use("/api/admin", adminRoutes); // Admin routes
 app.use("/api/property", propertyRoutes);
 app.use("/api/booking", bookingRoutes);
 app.use("/api/payment", paymentRoutes); // <-- Register payment routes
+app.use('/api/surveys', surveyRoutes);
 
 // Example: Payment verification route (if still needed)
 app.post("/api/verify-payment", async (req, res) => {
