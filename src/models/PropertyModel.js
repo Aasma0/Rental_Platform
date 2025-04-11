@@ -47,11 +47,13 @@ const PropertySchema = new mongoose.Schema(
       required: true,
     },
     survey: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Survey',
-    required: function() { return this.type === 'Sharing'; }
-
-  }
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Survey',
+      // Changed to validate survey only after document is saved
+      required: function() { 
+        return this.isNew ? false : this.type === 'Sharing';
+      }
+    }
   },
   { timestamps: true }
 );

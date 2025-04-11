@@ -11,8 +11,8 @@ const {
   getAllProperties,
   getMyTransactions,
   getActiveBookingsCount,
-  getTransactionById,
-  getAllTransactions
+  calculateExtension,
+  
 } = require('../controllers/bookingController');
 const authMiddleware = require('../middleware/authMiddleware');
 
@@ -27,8 +27,6 @@ router.get('/properties', getAllProperties);
 
 // New transaction routes
 router.get('/my-transactions', authMiddleware, getMyTransactions);
-// router.get('/transactions/:id', authMiddleware, getTransactionById);
-// router.get('/admin/transactions', authMiddleware, getAllTransactions);
 
 // Property route
 router.get("/property/:propertyId", async (req, res) => {

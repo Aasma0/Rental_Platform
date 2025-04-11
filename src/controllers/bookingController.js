@@ -142,22 +142,37 @@ exports.updateBooking = async (req, res) => {
     const bookingId = req.params.bookingId;
     const userId = req.user.id;
 
-    const booking = await Booking.findOne({ _id: bookingId, user: userId });
-
-    if (!booking) {
-      return res
-        .status(404)
-        .json({ message: "Booking not found or unauthorized." });
+    // Validate dates
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (isNaN(start) || isNaN(end)) {
+      return res.status(400).json({ message: "Invalid date format" });
+    }
+    if (start >= end) {
+      return res.status(400).json({ message: "End date must be after start date" });
     }
 
-    // Check for overlapping bookings
+    const booking = await Booking.findOne({ 
+      _id: bookingId,
+      user: userId 
+    });
+
+    if (!booking) {
+      return res.status(404).json({ 
+        message: "Booking not found or unauthorized." 
+      });
+    }
+
+    // Check for overlapping bookings (corrected logic)
     const overlappingBooking = await Booking.findOne({
       property: booking.property,
       _id: { $ne: bookingId },
       $or: [
-        { startDate: { $lte: new Date(endDate), $gte: new Date(startDate) } },
-        { endDate: { $lte: new Date(endDate), $gte: new Date(startDate) } },
-      ],
+        { 
+          startDate: { $lt: end }, 
+          endDate: { $gt: start } 
+        }
+      ]
     });
 
     if (overlappingBooking) {
@@ -166,13 +181,22 @@ exports.updateBooking = async (req, res) => {
       });
     }
 
-    booking.startDate = startDate;
-    booking.endDate = endDate;
+    // Update booking
+    booking.startDate = start;
+    booking.endDate = end;
     await booking.save();
 
-    res.status(200).json({ message: "Booking updated successfully!", booking });
+    res.status(200).json({ 
+      message: "Booking updated successfully!", 
+      booking 
+    });
+
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    console.error("Update booking error:", error);
+    res.status(500).json({ 
+      message: "Server error",
+      error: error.message 
+    });
   }
 };
 
@@ -203,11 +227,16 @@ exports.cancelBooking = async (req, res) => {
 exports.getBookedDates = async (req, res) => {
   try {
     const propertyId = req.params.propertyId;
-    const bookings = await Booking.find({ property: propertyId }).select(
-      "startDate endDate"
-    );
+    const bookings = await Booking.find({ property: propertyId })
+      .select("startDate endDate")
+      .lean();
 
-    res.status(200).json({ bookedDates: bookings });
+    const formattedBookings = bookings.map(booking => ({
+      startDate: booking.startDate.toISOString(),
+      endDate: booking.endDate.toISOString()
+    }));
+
+    res.status(200).json({ bookedDates: formattedBookings });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -271,5 +300,66 @@ exports.getActiveBookingsCount = async (req, res) => {
     res.json({ count });
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.calculateExtension = async (req, res) => {
+  try {
+    const { bookingId, newEndDate } = req.body;
+    const userId = req.user.id;
+
+    const booking = await Booking.findById(bookingId)
+      .populate('property')
+      .lean();
+
+    if (!booking || booking.user.toString() !== userId) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    // Check availability for extension period
+    const extensionStart = new Date(booking.endDate);
+    const extensionEnd = new Date(newEndDate);
+    
+    const overlapping = await Booking.findOne({
+      property: booking.property._id,
+      _id: { $ne: bookingId },
+      $or: [
+        { startDate: { $lt: extensionEnd }, 
+         endDate: { $gt: extensionStart } }
+      ]
+    });
+
+    if (overlapping) {
+      return res.status(400).json({ 
+        message: "Property is booked during the extension period" 
+      });
+    }
+
+    // Calculate additional days
+    const additionalDays = differenceInDays(extensionEnd, extensionStart);
+    if (additionalDays <= 0) {
+      return res.status(400).json({ 
+        message: "Extension must be at least 1 day" 
+      });
+    }
+
+    // Calculate extension cost
+    const { totalPrice } = calculateFairPrice(
+      additionalDays,
+      booking.property.price,
+      booking.property.pricingUnit
+    );
+
+    res.json({ 
+      additionalDays,
+      additionalCost: totalPrice,
+      currency: "INR"
+    });
+
+  } catch (error) {
+    res.status(500).json({ 
+      message: "Server error", 
+      error: error.message 
+    });
   }
 };

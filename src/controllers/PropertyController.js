@@ -1,8 +1,8 @@
 const Property = require("../models/PropertyModel");
 const Tag = require("../models/TagModel"); // Import the Tag model
 const Survey = require ("../models/SurveyModel.js");
+const mongoose = require('mongoose');
 
-// Create a new property
 // Create a new property
 const createProperty = async (req, res) => {
   try {
@@ -24,9 +24,9 @@ const createProperty = async (req, res) => {
     }
 
     // Parse and validate survey data
-    let survey;
+    let surveyData;
     try {
-      survey = req.body.survey ? JSON.parse(req.body.survey) : null;
+      surveyData = req.body.survey ? JSON.parse(req.body.survey) : null;
     } catch (parseError) {
       return res.status(400).json({ 
         message: "Invalid survey format",
@@ -36,23 +36,21 @@ const createProperty = async (req, res) => {
 
     // Validate survey requirements for shared properties
     if (type === "Sharing") {
-      if (!survey) {
+      if (!surveyData) {
         return res.status(400).json({ 
           message: "Roommate compatibility survey is required for shared properties" 
         });
       }
 
-      // Validate survey fields
       const requiredFields = ['sleepSchedule', 'smoking', 'noisePreference', 'neatness'];
-      const missingFields = requiredFields.filter(field => !(field in survey));
+      const missingFields = requiredFields.filter(field => !(field in surveyData));
       if (missingFields.length > 0) {
         return res.status(400).json({
           message: `Missing survey fields: ${missingFields.join(', ')}`
         });
       }
 
-      // Validate numerical fields
-      if (isNaN(survey.noisePreference) || isNaN(survey.neatness)) {
+      if (isNaN(surveyData.noisePreference) || isNaN(surveyData.neatness)) {
         return res.status(400).json({
           message: "Noise preference and neatness must be numerical values"
         });
@@ -89,7 +87,7 @@ const createProperty = async (req, res) => {
       });
     }
 
-    // Create property
+    // Create property (without using a transaction)
     const newProperty = new Property({
       title,
       description,
@@ -106,24 +104,23 @@ const createProperty = async (req, res) => {
 
     await newProperty.save();
 
-    // Create and link survey for shared properties
-    let createdSurvey = null;
-    if (type === "Sharing" && survey) {
+    // Create and link survey for shared properties if applicable
+    if (type === "Sharing" && surveyData) {
       try {
-        createdSurvey = await Survey.create({
+        const createdSurvey = new Survey({
           property: newProperty._id,
           user: req.user.id,
-          sleepSchedule: survey.sleepSchedule,
-          smoking: survey.smoking,
-          noisePreference: Number(survey.noisePreference),
-          neatness: Number(survey.neatness)
+          sleepSchedule: surveyData.sleepSchedule,
+          smoking: surveyData.smoking,
+          noisePreference: Number(surveyData.noisePreference),
+          neatness: Number(surveyData.neatness)
         });
 
-        // Link survey to property
+        await createdSurvey.save();
+
         newProperty.survey = createdSurvey._id;
         await newProperty.save();
       } catch (surveyError) {
-        await Property.findByIdAndDelete(newProperty._id);
         return res.status(400).json({
           message: "Survey validation failed",
           error: surveyError.message
@@ -140,7 +137,6 @@ const createProperty = async (req, res) => {
       message: "Property created successfully",
       property: populatedProperty
     });
-
   } catch (error) {
     console.error("Error creating property:", error);
     res.status(500).json({ 
@@ -149,6 +145,7 @@ const createProperty = async (req, res) => {
     });
   }
 };
+
 // Fetch all properties with tag details (optional filtering by category and type)
 // Updated getAllProperties function
 const getAllProperties = async (req, res) => {
@@ -280,6 +277,7 @@ const deleteProperty = async (req, res) => {
 };
 
 // Update property by ID (Only owner can update)
+// Update property by ID (Only owner can update)
 const editProperty = async (req, res) => {
   try {
     const { id } = req.params;
@@ -293,6 +291,7 @@ const editProperty = async (req, res) => {
       type,
       pricingUnit,
       totalPrice,
+      coordinates
     } = req.body;
 
     let property = await Property.findById(id);
@@ -307,10 +306,74 @@ const editProperty = async (req, res) => {
         .json({ message: "Unauthorized to update this property" });
     }
 
-    if (type && !["Renting", "Selling"].includes(type)) {
+    // Validate property type
+    if (type && !["Renting", "Selling", "Sharing"].includes(type)) {
       return res
         .status(400)
-        .json({ message: "Invalid type. Must be 'Renting' or 'Selling'." });
+        .json({ message: "Invalid type. Must be 'Renting', 'Selling', or 'Sharing'." });
+    }
+
+    // Parse tags
+    let parsedTags = tags;
+    try {
+      parsedTags = typeof tags === 'string' ? JSON.parse(tags) : tags;
+    } catch (err) {
+      return res.status(400).json({
+        message: "Invalid tags format. Ensure it's a valid JSON array."
+      });
+    }
+
+    // Handle coordinates
+    let parsedCoordinates = coordinates;
+    try {
+      parsedCoordinates = typeof coordinates === 'string' ? JSON.parse(coordinates) : coordinates;
+    } catch (err) {
+      console.error("Coordinates parsing error:", err);
+      // If coordinates can't be parsed, continue with existing coordinates
+      parsedCoordinates = property.coordinates;
+    }
+
+    // Handle survey data for shared properties
+    let surveyData;
+    if (type === "Sharing") {
+      try {
+        surveyData = req.body.survey ? JSON.parse(req.body.survey) : null;
+        
+        if (!surveyData && !property.survey) {
+          return res.status(400).json({ 
+            message: "Roommate compatibility survey is required for shared properties" 
+          });
+        }
+        
+        // If we have new survey data, update or create the survey
+        if (surveyData) {
+          if (property.survey) {
+            // Update existing survey
+            await Survey.findByIdAndUpdate(property.survey, {
+              sleepSchedule: surveyData.sleepSchedule,
+              smoking: surveyData.smoking,
+              noisePreference: Number(surveyData.noisePreference),
+              neatness: Number(surveyData.neatness)
+            });
+          } else {
+            // Create new survey
+            const createdSurvey = new Survey({
+              property: property._id,
+              user: req.user.id,
+              sleepSchedule: surveyData.sleepSchedule,
+              smoking: surveyData.smoking,
+              noisePreference: Number(surveyData.noisePreference),
+              neatness: Number(surveyData.neatness)
+            });
+            
+            await createdSurvey.save();
+            property.survey = createdSurvey._id;
+          }
+        }
+      } catch (parseError) {
+        console.error("Survey parsing error:", parseError);
+        // If there's a parsing error, use existing survey data
+      }
     }
 
     // Handle image updates (if new images are uploaded)
@@ -320,29 +383,42 @@ const editProperty = async (req, res) => {
     }
 
     // Update the property
+    const updateData = {
+      title,
+      description,
+      location,
+      price,
+      coordinates: parsedCoordinates,
+      category,
+      tags: parsedTags,
+      images: updatedImages,
+      type
+    };
+
+    // Add conditional fields based on property type
+    if (type === "Selling") {
+      updateData.totalPrice = totalPrice || price;
+      updateData.pricingUnit = undefined;
+    } else if (["Renting", "Sharing"].includes(type)) {
+      updateData.pricingUnit = pricingUnit;
+      updateData.totalPrice = undefined;
+    }
+
     property = await Property.findByIdAndUpdate(
       id,
-      {
-        title,
-        description,
-        location,
-        price,
-        totalPrice,
-        pricingUnit,
-        category,
-        tags,
-        images: updatedImages,
-        type,
-      },
+      updateData,
       { new: true }
-    ).populate("category owner tags", "name");
+    ).populate("category owner tags survey", "name");
 
     res
       .status(200)
       .json({ message: "Property updated successfully", property });
   } catch (error) {
     console.error("Error updating property:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ 
+      message: "Internal Server Error", 
+      error: error.message 
+    });
   }
 };
 
