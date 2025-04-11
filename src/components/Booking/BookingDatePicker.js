@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import StripeContainer from "./StripeContainer";
-import { differenceInDays } from "date-fns";
+import { differenceInDays, addDays, isWithinInterval, format } from "date-fns";
 
 const BookingDatePicker = ({ property }) => {
   const [startDate, setStartDate] = useState(null);
@@ -16,6 +16,33 @@ const BookingDatePicker = ({ property }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showCardDetails, setShowCardDetails] = useState(false);
   const [pricingBreakdown, setPricingBreakdown] = useState(null);
+  const [bookedDates, setBookedDates] = useState([]);
+  const [excludedDateIntervals, setExcludedDateIntervals] = useState([]);
+
+  // Fetch booked dates when component mounts
+  useEffect(() => {
+    const fetchBookedDates = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:8000/api/booking/booked-dates/${property._id}`
+        );
+        const data = await response.json();
+        setBookedDates(data.bookedDates);
+        
+        const intervals = data.bookedDates.map(({ startDate, endDate }) => ({
+          start: new Date(startDate),
+          end: new Date(endDate),
+        }));
+        setExcludedDateIntervals(intervals);
+      } catch (error) {
+        console.error("Error fetching booked dates:", error);
+      }
+    };
+
+    if (property?._id) {
+      fetchBookedDates();
+    }
+  }, [property]);
 
   // Calculate total price based on selected dates and pricing unit
   useEffect(() => {
@@ -31,6 +58,17 @@ const BookingDatePicker = ({ property }) => {
     }
   }, [startDate, endDate, property]);
 
+  // Style booked dates
+  const getDayClassName = (date) => {
+    const isBooked = bookedDates.some(({ startDate, endDate }) => 
+      isWithinInterval(date, {
+        start: new Date(startDate),
+        end: new Date(endDate),
+      })
+    );
+    return isBooked ? "booked-day" : "";
+  };
+
   // Fair pricing calculation function
   const calculateFairPrice = (days, basePrice, pricingUnit = "Per Day") => {
     let totalPrice = 0;
@@ -44,50 +82,34 @@ const BookingDatePicker = ({ property }) => {
 
     switch (pricingUnit) {
       case "Per Month":
-        // A month is counted as 30 days
         const fullMonths = Math.floor(days / 30);
         const partialDays = days % 30;
-
-        // Calculate for full months
         breakdown.fullPeriods = fullMonths;
         breakdown.fullPeriodsPrice = fullMonths * basePrice;
-
-        // Calculate for partial days with 3% discount if less than a month
         if (partialDays > 0) {
           const dailyRate = basePrice / 30;
           const partialPrice = dailyRate * partialDays;
           breakdown.partialDays = partialDays;
-
-          // Apply 3% discount for partial period
           const discount = partialPrice * 0.03;
           breakdown.discount = discount;
           breakdown.partialDaysPrice = partialPrice - discount;
         }
-
         totalPrice = breakdown.fullPeriodsPrice + breakdown.partialDaysPrice;
         break;
 
       case "Per Week":
-        // A week is counted as 7 days
         const fullWeeks = Math.floor(days / 7);
         const remainingDays = days % 7;
-
-        // Calculate for full weeks
         breakdown.fullPeriods = fullWeeks;
         breakdown.fullPeriodsPrice = fullWeeks * basePrice;
-
-        // Calculate for partial days with 3% discount if less than a week
         if (remainingDays > 0) {
           const dailyRate = basePrice / 7;
           const partialPrice = dailyRate * remainingDays;
           breakdown.partialDays = remainingDays;
-
-          // Apply 3% discount for partial period
           const discount = partialPrice * 0.03;
           breakdown.discount = discount;
           breakdown.partialDaysPrice = partialPrice - discount;
         }
-
         totalPrice = breakdown.fullPeriodsPrice + breakdown.partialDaysPrice;
         break;
 
@@ -120,7 +142,6 @@ const BookingDatePicker = ({ property }) => {
       pay_later: "pay_later",
     };
 
-    // Calculate paidAmount correctly based on payment type
     const paidAmount =
       method === "pay_later"
         ? 0
@@ -128,7 +149,6 @@ const BookingDatePicker = ({ property }) => {
         ? totalPrice * 0.5
         : totalPrice;
 
-    // Ensure remainingBalance is never negative
     const remainingBalance = Math.max(0, totalPrice - paidAmount);
 
     try {
@@ -169,11 +189,9 @@ const BookingDatePicker = ({ property }) => {
       setIsLoading(true);
       setBookingMessage("");
 
-      // Create booking record first
       const { booking } = await createBookingRecord(method);
       setBookingDetails(booking);
 
-      // Handle different payment methods
       if (method === "pay_later") {
         setIsBookingConfirmed(true);
         setBookingMessage("Booking confirmed! Pay at check-in.");
@@ -193,10 +211,8 @@ const BookingDatePicker = ({ property }) => {
       setIsLoading(true);
       const token = localStorage.getItem("token");
 
-      // Determine correct status based on payment type
       const status = paymentType === "partial" ? "partially_paid" : "paid";
 
-      // Update booking with payment details
       const response = await fetch(
         `http://localhost:8000/api/booking/confirm/${bookingDetails._id}`,
         {
@@ -277,10 +293,47 @@ const BookingDatePicker = ({ property }) => {
     );
   };
 
+  // Booked dates table
+  const renderBookedDatesTable = () => (
+    <div className="mt-6 bg-white w-96 p-4 rounded-lg shadow border border-gray-200">
+      <h3 className="text-lg font-semibold mb-3">Already Booked Dates</h3>
+      {bookedDates.length === 0 ? (
+        <p className="text-gray-500">No bookings yet</p>
+      ) : (
+        <table className="w-full">
+          <thead>
+            <tr className="text-left border-b">
+              <th className="pb-2">Start Date</th>
+              <th className="pb-2">End Date</th>
+              <th className="pb-2">Duration</th>
+            </tr>
+          </thead>
+          <tbody>
+            {bookedDates.map((booking, index) => {
+              const start = new Date(booking.startDate);
+              const end = new Date(booking.endDate);
+              const duration = differenceInDays(end, start) + 1;
+              
+              return (
+                <tr key={index} className="border-b last:border-b-0">
+                  <td className="py-2">{format(start, "MMM dd, yyyy")}</td>
+                  <td className="py-2">{format(end, "MMM dd, yyyy")}</td>
+                  <td className="py-2">
+                    {duration} {duration === 1 ? "day" : "days"}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+
   return (
     <div className="max-w-md mx-auto">
       {/* Date Selection */}
-      <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+      <div className="bg-white w-96 p-6 rounded-lg shadow-lg border border-gray-200">
         <h3 className="text-xl font-bold mb-4 text-gray-800">Book Your Stay</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -292,6 +345,8 @@ const BookingDatePicker = ({ property }) => {
               selected={startDate}
               onChange={setStartDate}
               minDate={new Date()}
+              excludeDateIntervals={excludedDateIntervals}
+              dayClassName={getDayClassName}
               className="w-full p-2 border rounded-md"
               placeholderText="Select start date"
             />
@@ -305,6 +360,8 @@ const BookingDatePicker = ({ property }) => {
               selected={endDate}
               onChange={setEndDate}
               minDate={startDate || new Date()}
+              excludeDateIntervals={excludedDateIntervals}
+              dayClassName={getDayClassName}
               className="w-full p-2 border rounded-md"
               placeholderText="Select end date"
             />
@@ -321,6 +378,9 @@ const BookingDatePicker = ({ property }) => {
           Continue to Payment
         </button>
       </div>
+
+      {/* Booked Dates Table */}
+      {renderBookedDatesTable()}
 
       {/* Payment Modal */}
       {showPaymentModal && (

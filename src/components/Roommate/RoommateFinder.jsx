@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import NavbarSection from "../LandingPage/NavBar";
@@ -163,25 +164,24 @@ const response = await axios.get("http://localhost:8000/api/property/all", {
                   <span>{property.location}</span>
                 </div>
 
-                {/* Owner Details */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-semibold mb-3 text-lg">Owner Information</h3>
-                  <div className="space-y-2">
-                    <div>
-                      <span className="font-medium">Name:</span> {owner.name}
-                    </div>
-                    <div>
-                      <span className="font-medium">Email:</span> {owner.email}
-                    </div>
-                    {owner.phone && (
+                  {/* Owner Details */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="font-semibold mb-3 text-lg">Owner Information</h3>
+                    <div className="space-y-2">
                       <div>
-                        <span className="font-medium">Phone:</span> {owner.phone}
+                        <span className="font-medium">Name:</span> {owner.name}
                       </div>
-                    )}
+                      <div>
+                        <span className="font-medium">Email:</span> {owner.email}
+                      </div>
+                      {owner.phone && (
+                        <div>
+                          <span className="font-medium">Phone:</span> {owner.phone}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                // Inside PropertyModal component
 {/* Survey Answers */}
 {survey && (
   <div className="bg-gray-50 p-4 rounded-lg">

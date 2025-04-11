@@ -10,7 +10,7 @@ const PropertyList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [bookedDates, setBookedDates] = useState([]);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetchProperties();
@@ -18,12 +18,45 @@ const PropertyList = () => {
 
   const fetchProperties = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/property/all");
-      if (!response.ok) {
-        throw new Error("Failed to fetch properties");
-      }
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:8000/api/property/all?populate=owner", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) throw new Error("Failed to fetch properties");
       const data = await response.json();
-      const rentingProperties = (data || []).filter(p => p.type === "Renting");
+      
+      const rentingProperties = (data || []).filter(p => p.type === "Renting").map(property => {
+        const tagNames = Array.isArray(property.tags) 
+          ? property.tags.map(tag => 
+              typeof tag === 'object' ? tag.name : tag
+            )
+          : [];
+        
+        const owner = property.owner ? {
+          name: property.owner.name || "",
+          email: property.owner.email || "",
+          phone: property.owner.phone || ""
+        } : {};
+        
+        const images = Array.isArray(property.images)
+          ? property.images.map(img => {
+              if (img.startsWith('http')) return img;
+              const formattedPath = img.replace(/\\/g, '/');
+              return `http://localhost:8000/${formattedPath}`;
+            })
+          : [];
+
+        return {
+          ...property,
+          tagNames,
+          owner,
+          images
+        };
+      });
+
       setProperties(rentingProperties);
       setFilteredProperties(rentingProperties);
     } catch (error) {
@@ -34,7 +67,6 @@ const PropertyList = () => {
       setLoading(false);
     }
   };
-  
 
   const handleSearch = async (query) => {
     if (!query) {
@@ -43,9 +75,44 @@ const PropertyList = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/api/property/search?search=${query}`);
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:8000/api/property/search?search=${query}&populate=owner`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
       const data = await response.json();
-      setFilteredProperties(data.properties || []);
+      
+      const transformedResults = (data.properties || []).map(property => {
+        const tagNames = Array.isArray(property.tags) 
+          ? property.tags.map(tag => typeof tag === 'object' ? tag.name : tag)
+          : [];
+        
+        const owner = property.owner ? {
+          name: property.owner.name || "",
+          email: property.owner.email || "",
+          phone: property.owner.phone || ""
+        } : {};
+        
+        const images = Array.isArray(property.images)
+          ? property.images.map(img => {
+              if (img.startsWith('http')) return img;
+              const formattedPath = img.replace(/\\/g, '/');
+              return `http://localhost:8000/${formattedPath}`;
+            })
+          : [];
+          
+        return {
+          ...property,
+          tagNames,
+          owner,
+          images
+        };
+      });
+      
+      setFilteredProperties(transformedResults);
     } catch (error) {
       console.error("Error fetching search results:", error);
       setFilteredProperties([]);
@@ -61,14 +128,11 @@ const PropertyList = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Navbar with sidebar toggle */}
       <NavbarSection toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} pageType="dashboard" />
 
       <div className="flex flex-1">
-        {/* Sidebar with visibility toggle */}
         <Sidebar isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen(false)} pageType="dashboard" />
 
-        {/* Main Content */}
         <div className="flex-1 p-4">
           <SliderSection onSearch={handleSearch} />
           <h2 className="text-2xl font-bold mb-4">Available Properties</h2>

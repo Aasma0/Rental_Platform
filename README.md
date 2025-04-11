@@ -1,70 +1,76 @@
-# Getting Started with Create React App
+Hearth & Co: Smart Rental Platform
+Hearth & Co is a full-featured rental platform designed to simplify renting for both tenants and landlords. Built on the MERN stack, it supports short-term and long-term rentals, advanced filtering, roommate matching, in-app payments, and much more—making property discovery seamless and stress-free.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+🚀 Features
+🏠 Property Management
+List & Manage Properties – Upload images/videos, add categories and tags.
+Booking System – Real-time availability, calendar-based bookings.
 
-## Available Scripts
+🧑‍🤝‍🧑 Roommate Finding
+Survey-Based Search – Find roommates through survey filled by proprty owner.
 
-In the project directory, you can run:
+📍 Interactive Maps
+Real-Time Maps – Visualize properties using React Leaflet.
 
-### `npm start`
+💳 Integrated Payments
+Stripe Integration – Secure and seamless rent payments.
+Payment Confirmation – Dummy payment flows supported.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+📊 Admin Dashboard
+Category & users Analytics – Pie and bar charts showing property data.
+User & Property Management – Moderate listings.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+🔍 Advanced Filtering & UX
+Hyper-Specific tag Search – Pet-friendly, accessible, Wi-Fi, and more.
+Category-Based Browsing – Click through categories to view specific listings.
 
-### `npm test`
+🛠️ Tech Stack
+Frontend
+React.js
+Tailwind CSS – Utility-first styling
+React Leaflet – Map visualization
+React Icons – Icon library
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Backend
+Node.js + Express
+MongoDB + Mongoose – Database & modeling
 
-### `npm run build`
+Stripe – Payment processing
+Jest – Unit testing
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+AI & Features
+Chart.js – Visualize data in admin dashboard
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+🧪 Setup & Installation
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+# Clone the Repository
+git clone https://github.com/Aasma0/Rental_Platform
 
-### `npm run eject`
+🔧 Install Dependencies
+cd frontend
+npm install
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+cd ../backend
+npm install
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+▶️ Run the Development Servers
+Start Frontend
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+cd frontend
+npm start
 
-## Learn More
+Start Backend
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+cd ../backend
+npm start
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+💳 Stripe Payment Setup
 
-### Code Splitting
+STRIPE_SECRET_KEY=sk_test_51R7XyVDIfAK6jlSaYqLTRvN32QqXt4IdZ5qbf1kqZsATA3hdSxtMq5dvc3BHm6NYJkqshRt7wepbSuAYH4dw7Nf700xy2nMimw
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
 
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+🧪 Testing
+# Run backend tests using Jest
+cd backend
+npm test

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { FaCog } from "react-icons/fa"; 
 
 const NavbarSection = ({ toggleSidebar, pageType }) => {
-  const token = localStorage.getItem("token");
+  const userRole = localStorage.getItem("role"); // e.g., "admin" or "user"
 
   return (
     <nav className="flex justify-between items-center py-4 px-12 bg-white shadow-md">
@@ -17,16 +17,19 @@ const NavbarSection = ({ toggleSidebar, pageType }) => {
 
       {/* Center Navigation Links (Always Visible) */}
       <div className="space-x-4">
-        <Link to="/property" className="text-black hover:text-blue-500 transition">
-          Rent
-        </Link>
-        <Link to="/dash" className="text-black hover:text-blue-500 transition">
-          Home
-        </Link>
-        <Link to="/rentals" className="text-black hover:text-blue-500 transition">
+      <Link to="/property" className="text-black hover:text-blue-500 transition">
+        Rent
+      </Link>
+      <Link
+        to={userRole === "admin" ? "/admin-dash" : "/dash"}
+        className="text-black hover:text-blue-500 transition"
+      >
+        Home
+      </Link>
+      <Link to="/rentals" className="text-black hover:text-blue-500 transition">
         Explore Properties
-        </Link>
-      </div>
+      </Link>
+    </div>
 
       {/* Right Side - Changes Based on Page Type */}
       <div className="space-x-4">

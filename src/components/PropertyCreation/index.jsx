@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import NavbarSection from '../../components/LandingPage/NavBar';
 import Sidebar from '../../components/LandingPage/Sidebar';
 import MapComponent from './MapComponent';
@@ -21,7 +23,7 @@ const PropertyCreation = () => {
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState(NEPAL_COORDINATES);
   const [price, setPrice] = useState('');
-  const [pricingUnit, setPricingUnit] = useState('Per Day');
+  const [pricingUnit, setPricingUnit] = useState('');
   const [images, setImages] = useState([]);
   const [category, setCategory] = useState('');
   const [categories, setCategories] = useState([]);
@@ -37,21 +39,20 @@ const PropertyCreation = () => {
   const [showSurveyModal, setShowSurveyModal] = useState(false);
   const [surveyResponses, setSurveyResponses] = useState(null);
 
-  // Fetch categories
+  // Fetch categories from the API and update category state based on property type
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get("http://localhost:8000/api/category/all");
         const categories = response.data.categories || [];
         setCategories(categories);
-        
+
         const sellCategory = categories.find(cat => cat.name === "Sell");
         const sharedCategory = categories.find(cat => cat.name === "Shared");
-        
+
         if (sellCategory) setSellCategoryId(sellCategory._id);
         if (sharedCategory) setSharedCategoryId(sharedCategory._id);
-        
-        // Auto-set category based on type
+
         if (propertyType === "Selling" && sellCategory) {
           setCategory(sellCategory._id);
         }
@@ -60,12 +61,13 @@ const PropertyCreation = () => {
         }
       } catch (error) {
         console.error("Error fetching categories:", error);
+        toast.error("Failed to load categories");
       }
     };
     fetchCategories();
   }, [propertyType]);
 
-  // Handle survey requirements
+  // Display the roommate survey modal if the selected category is Shared or type is Sharing and there are no survey responses yet.
   useEffect(() => {
     const selectedCategory = categories.find(cat => cat._id === category);
     if ((selectedCategory?.name === 'Shared' || propertyType === 'Sharing') && !surveyResponses) {
@@ -73,7 +75,7 @@ const PropertyCreation = () => {
     }
   }, [category, categories, propertyType, surveyResponses]);
 
-  // Fetch tags
+  // Fetch tags from the API
   useEffect(() => {
     const fetchTags = async () => {
       try {
@@ -81,12 +83,14 @@ const PropertyCreation = () => {
         setTags(Array.isArray(response.data.tags) ? response.data.tags : []);
       } catch (error) {
         console.error("Error fetching tags:", error);
+        toast.error("Failed to load property tags");
         setTags([]);
       }
     };
     fetchTags();
   }, []);
 
+  // Reverse geocoding helper
   const reverseGeocode = async (lat, lng) => {
     setIsGeocoding(true);
     try {
@@ -95,7 +99,7 @@ const PropertyCreation = () => {
       );
       const data = await response.json();
       if (data.address) {
-        const address = data.display_name || 
+        const address = data.display_name ||
           `${data.address.road || ""} ${data.address.house_number || ""}, 
           ${data.address.city || data.address.town || ""}, 
           ${data.address.country || ""}`.replace(/\s+/g, " ").trim();
@@ -103,6 +107,7 @@ const PropertyCreation = () => {
       }
     } catch (error) {
       console.error("Reverse geocoding error:", error);
+      toast.error("Failed to fetch address for selected location");
       setError("Failed to fetch address for selected location.");
     } finally {
       setIsGeocoding(false);
@@ -117,9 +122,10 @@ const PropertyCreation = () => {
   const handleAddressSearch = useCallback(async () => {
     if (!location.address.trim()) {
       setError("Please enter an address to search");
+      toast.warning("Please enter an address to search");
       return;
     }
-  
+
     setIsGeocoding(true);
     try {
       const response = await fetch(
@@ -133,37 +139,46 @@ const PropertyCreation = () => {
           lat: parseFloat(firstResult.lat),
           lng: parseFloat(firstResult.lon),
         });
+        toast.success("Location found");
       } else {
         setError("Location not found in Nepal. Please try a different address.");
+        toast.error("Location not found in Nepal");
       }
     } catch (error) {
       console.error("Geocoding error:", error);
       setError("Failed to search location. Please try again.");
+      toast.error("Failed to search location");
     } finally {
       setIsGeocoding(false);
     }
   }, [location.address]);
 
+  // Single definition to handle property type changes
   const handlePropertyTypeChange = (type) => {
     setPropertyType(type);
+    // Reset any previous survey responses when switching type
+    if (type !== "Sharing") {
+      setSurveyResponses(null);
+    }
     if (type === "Selling") {
       setPricingUnit("");
       if (sellCategoryId) setCategory(sellCategoryId);
     } else if (type === "Sharing") {
-      setPricingUnit("Per Month");
+      setPricingUnit("Per Month"); // Set default unit for sharing
       if (sharedCategoryId) setCategory(sharedCategoryId);
     } else {
       setPricingUnit("Per Day");
       setCategory("");
     }
+    toast.info(`Property type set to ${type}`);
   };
 
+  // Handle form submission by constructing the FormData and sending it via axios
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
-  
-    // Validation checks
+
     const errors = [];
     if (!propertyType) errors.push("Please select property type");
     if (propertyType === "Selling" && !sellCategoryId) errors.push("Sell category not found");
@@ -172,50 +187,49 @@ const PropertyCreation = () => {
     }
     if (!location.lat || !location.lng) errors.push("Please select a valid location");
     if (!localStorage.getItem("token")) errors.push("Authentication required");
-  
+
     if (errors.length > 0) {
-      setError(errors.join(". "));
+      const errorMessage = errors.join(". ");
+      setError(errorMessage);
+      toast.error(errorMessage);
       setIsSubmitting(false);
       return;
     }
-  
-    // Ensure survey data is properly structured
+
+    // Construct survey data if available for Sharing properties
     const surveyData = surveyResponses ? {
       sleepSchedule: surveyResponses.sleepSchedule,
       smoking: surveyResponses.smoking,
-      noisePreference: parseInt(surveyResponses.noisePreference),
-      neatness: parseInt(surveyResponses.neatness)
+      noisePreference: parseInt(surveyResponses.noisePreference, 10),
+      neatness: parseInt(surveyResponses.neatness, 10)
     } : null;
-  
+
     const formData = new FormData();
-    // Common fields
     formData.append("title", title);
     formData.append("description", description);
     formData.append("location", location.address);
-    formData.append("coordinates", JSON.stringify({ 
-      lat: location.lat || NEPAL_COORDINATES.lat, 
-      lng: location.lng || NEPAL_COORDINATES.lng 
+    formData.append("coordinates", JSON.stringify({
+      lat: location.lat || NEPAL_COORDINATES.lat,
+      lng: location.lng || NEPAL_COORDINATES.lng
     }));
     formData.append("price", price);
     formData.append("category", category);
     formData.append("tags", JSON.stringify(selectedTags));
     formData.append("type", propertyType);
-  
-    // Add survey data if exists
+
     if (surveyData) {
       formData.append("survey", JSON.stringify(surveyData));
     }
-  
-    // Type-specific fields
+
+    // Append pricing or total price based on property type
     if (propertyType === "Selling") {
       formData.append("totalPrice", price);
-    } else {
-      formData.append("pricingUnit", pricingUnit || "Per Day");
+    } else if (propertyType === "Sharing" || propertyType === "Renting") {
+      formData.append("pricingUnit", pricingUnit || "Per Month");
     }
-  
-    // Images
+
     images.forEach(image => formData.append("images", image));
-  
+
     try {
       await axios.post("http://localhost:8000/api/property/create", formData, {
         headers: {
@@ -223,10 +237,27 @@ const PropertyCreation = () => {
           "Content-Type": "multipart/form-data",
         },
       });
-      navigate("/dash");
+      
+      // Display success toast
+      toast.success("Property created successfully", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      
+      // Navigate after a short delay to allow the toast to be seen
+      setTimeout(() => {
+        navigate("/dash");
+      }, 1500);
+      
     } catch (error) {
       console.error("Submission error:", error);
-      setError(error.response?.data?.message || "Failed to create property");
+      const errorMsg = error.response?.data?.message || "Failed to create property";
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -234,6 +265,7 @@ const PropertyCreation = () => {
 
   return (
     <div className="relative min-h-screen bg-gray-50">
+      <ToastContainer />
       <NavbarSection toggleSidebar={() => setIsSidebarOpen(prev => !prev)} />
       <Sidebar isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen(prev => !prev)} />
 
@@ -253,7 +285,6 @@ const PropertyCreation = () => {
               )}
 
               <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-6">
-                {/* Basic Info */}
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">Title</label>
                   <input
@@ -277,7 +308,6 @@ const PropertyCreation = () => {
                   />
                 </div>
 
-                {/* Transaction Type Selector */}
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">Transaction Type</label>
                   <div className="grid grid-cols-3 gap-4">
@@ -298,7 +328,6 @@ const PropertyCreation = () => {
                   </div>
                 </div>
 
-                {/* Map Component */}
                 <MapComponent
                   location={location}
                   onMapClick={handleMapClick}
@@ -310,7 +339,6 @@ const PropertyCreation = () => {
                   }))}
                 />
 
-                {/* Price Section */}
                 <PriceSection
                   propertyType={propertyType}
                   price={price}
@@ -319,19 +347,18 @@ const PropertyCreation = () => {
                   onPricingUnitChange={setPricingUnit}
                 />
 
-                {/* Image Upload */}
                 <ImageUpload
                   images={images}
                   onImageChange={setImages}
                   error={error}
                 />
 
-                {/* Category Selector */}
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">Category</label>
                   <select
                     value={category}
                     onChange={(e) => {
+                      // Reset survey responses when category changes (unless it's sharing)
                       if (e.target.value !== sharedCategoryId) setSurveyResponses(null);
                       if (!["Selling", "Sharing"].includes(propertyType)) {
                         setCategory(e.target.value);
@@ -363,19 +390,18 @@ const PropertyCreation = () => {
                   )}
                 </div>
 
-                {/* Amenities */}
                 <Amenities
                   tags={tags}
                   selectedTags={selectedTags}
                   onTagClick={(tagId) => setSelectedTags(prev => {
                     if (prev.includes(tagId)) return prev.filter(id => id !== tagId);
                     if (prev.length < 10) return [...prev, tagId];
+                    toast.warning("Maximum 10 tags allowed");
                     setError("Maximum 10 tags allowed");
                     return prev;
                   })}
                 />
 
-                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -396,13 +422,13 @@ const PropertyCreation = () => {
         </div>
       </div>
 
-      {/* Survey Modal */}
       <RoommateSurveyModal
         show={showSurveyModal}
         onClose={() => setShowSurveyModal(false)}
         onSave={(data) => {
           setSurveyResponses(data);
           setShowSurveyModal(false);
+          toast.success("Roommate survey completed");
         }}
       />
     </div>

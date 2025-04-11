@@ -32,7 +32,6 @@ const Dashboard = () => {
       <NavbarSection toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} pageType="dashboard" />
       <Sidebar isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen(false)} pageType="dashboard" />
       <SliderSection />
-
       {/* Category Selection */}
       <div className="flex flex-col items-center my-4">
         <h2 className="text-lg font-semibold mb-2">Select a category to view properties</h2>

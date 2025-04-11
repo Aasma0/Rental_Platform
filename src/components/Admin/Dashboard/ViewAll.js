@@ -80,39 +80,42 @@ const ViewAll = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map(user => (
-              <tr key={user._id}>
-                <td>{user.name}</td>
-                <td>{user.email}</td>
-                <td>
-                  <span className={`status ${user.disabled ? 'disabled' : 'active'}`}>
-                    {user.disabled ? 'Disabled' : 'Active'}
-                  </span>
-                </td>
-                <td>
-                  {new Date(user.createdAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </td>
-                <td>
-                  <button
-                    className="btn view"
-                    onClick={() => handleSelectUser(user)}
-                  >
-                    View
-                  </button>
-                  <button
-                    className="btn delete"
-                    onClick={() => handleDelete(user._id)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+  {users
+    .filter(user => user.role === 'user') // Only include users with role 'user'
+    .map(user => (
+      <tr key={user._id}>
+        <td>{user.name}</td>
+        <td>{user.email}</td>
+        <td>
+          <span className={`status ${user.disabled ? 'disabled' : 'active'}`}>
+            {user.disabled ? 'Disabled' : 'Active'}
+          </span>
+        </td>
+        <td>
+          {new Date(user.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })}
+        </td>
+        <td>
+          <button
+            className="btn view"
+            onClick={() => handleSelectUser(user)}
+          >
+            View
+          </button>
+          <button
+            className="btn delete"
+            onClick={() => handleDelete(user._id)}
+          >
+            Delete
+          </button>
+        </td>
+      </tr>
+  ))}
+</tbody>
+
         </table>
       </div>
 

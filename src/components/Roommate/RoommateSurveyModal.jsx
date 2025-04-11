@@ -5,8 +5,7 @@ const RoommateSurveyModal = ({ show, onClose, onSave }) => {
     sleepSchedule: 'morning',
     smoking: 'non-smoker',
     noisePreference: 3,
-    neatness: 3,
-    guestsFrequency: 'rarely'
+    neatness: 3
   });
 
   const handleSubmit = (e) => {
@@ -19,7 +18,7 @@ const RoommateSurveyModal = ({ show, onClose, onSave }) => {
       <div className="bg-white rounded-lg p-6 w-full max-w-lg">
         <h2 className="text-2xl font-bold mb-4">Roommate Compatibility Survey</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Survey Questions */}
+          {/* Sleep Schedule */}
           <div>
             <label className="block text-gray-700 mb-2">Sleep Schedule:</label>
             <select
@@ -32,6 +31,7 @@ const RoommateSurveyModal = ({ show, onClose, onSave }) => {
             </select>
           </div>
 
+          {/* Smoking Preference */}
           <div>
             <label className="block text-gray-700 mb-2">Smoking Preference:</label>
             <div className="flex gap-4">
@@ -51,6 +51,7 @@ const RoommateSurveyModal = ({ show, onClose, onSave }) => {
             </div>
           </div>
 
+          {/* Noise Preference */}
           <div>
             <label className="block text-gray-700 mb-2">Noise Preference (1-5):</label>
             <div className="flex gap-2">
@@ -71,6 +72,7 @@ const RoommateSurveyModal = ({ show, onClose, onSave }) => {
             </div>
           </div>
 
+          {/* Neatness */}
           <div>
             <label className="block text-gray-700 mb-2">Neatness Importance (1-5):</label>
             <input
@@ -87,6 +89,7 @@ const RoommateSurveyModal = ({ show, onClose, onSave }) => {
             </div>
           </div>
 
+          {/* Buttons */}
           <div className="flex justify-end gap-4">
             <button type="button" onClick={onClose} className="px-4 py-2 text-gray-600 hover:text-gray-800">
               Cancel

@@ -1,6 +1,13 @@
 import React from 'react';
 
 const PriceSection = ({ propertyType, price, onPriceChange, pricingUnit, onPricingUnitChange }) => {
+  // Set default pricing unit for Sharing
+  React.useEffect(() => {
+    if (propertyType === "Sharing" && !pricingUnit) {
+      onPricingUnitChange("Per Month");
+    }
+  }, [propertyType, onPricingUnitChange, pricingUnit]);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
@@ -17,28 +24,8 @@ const PriceSection = ({ propertyType, price, onPriceChange, pricingUnit, onPrici
           required
         />
       </div>
-      {propertyType === "Sharing" && (
-        <div>
-          <label className="block text-gray-700 font-medium mb-2">Billing Period</label>
-          <div className="grid grid-cols-3 gap-2">
-            {["Per Day", "Per Week", "Per Month"].map((unit) => (
-              <button
-                key={unit}
-                type="button"
-                onClick={() => onPricingUnitChange(unit)}
-                className={`p-2 rounded-lg border ${
-                  pricingUnit === unit
-                    ? "border-blue-500 bg-blue-50 text-blue-700"
-                    : "border-gray-300 hover:border-blue-300"
-                }`}
-              >
-                {unit}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-      {propertyType === "Renting"  && (
+      
+      {(propertyType === "Sharing" || propertyType === "Renting") && (
         <div>
           <label className="block text-gray-700 font-medium mb-2">Billing Period</label>
           <div className="grid grid-cols-3 gap-2">
